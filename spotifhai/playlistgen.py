@@ -12,6 +12,8 @@ import json
 
 # SETTINGS 
 rec_url = "https://api.spotify.com/v1/recommendations?"
+
+# We need these two things along with the user query to make the call
 token = "FILL_IN_YOUR_TOKEN"
 user_id = "FILL_IN_YOUR_USER_ID"
 
