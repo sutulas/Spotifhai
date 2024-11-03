@@ -29,12 +29,18 @@ all_genres = [
   "ska","sleep","songwriter","soundtracks","spanish","study","summer","swedish","synth-pop","tango","techno","trance", "trip-hop","turkish","work-out", "world-music"]
 
 
-
+market="US"
 # OUR FILTERS -- WE CAN GENERATE THESE WITH OPEN AI
 limit=10
-market="US"
 seed_genres="indie"
 target_danceability=0.9
+target_acousticness=0.5
+target_energy=0.5
+target_instrumentalness=0.5
+target_liveness=0.5
+target_loudness=0.2
+target_popularity=0.5
+target_tempo=100
 uris = [] 
 # This may be slightly more complicated because we have to get them from spotify
 # seed_artists = '0XNa1vTidXlvJ2gHSsRi4A'
