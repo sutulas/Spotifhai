@@ -30,24 +30,34 @@ const App = () => {
 
     if (code) {
       const fetchToken = async () => {
-        const tokenResponse = await axios.post('https://accounts.spotify.com/api/token', new URLSearchParams({
-          code: code,
-          redirect_uri: redirect_uri,
-          grant_type: 'authorization_code',
-        }), {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Authorization': 'Basic ' + btoa(`${client_id}:${client_secret}`),
-          },
-        });
+        try {
+          const requestData = {
+            code: code,
+            redirect_uri: redirect_uri,
+            grant_type: 'authorization_code',
+          };
 
-        const { access_token, refresh_token } = tokenResponse.data;
+          // Log the request data
+          console.log('Request Data:', requestData);
+          console.log('Authorization Header:', 'Basic ' + btoa(`${client_id}:${client_secret}`));
 
-        localStorage.setItem('access_token', access_token);
-        localStorage.setItem('refresh_token', refresh_token);
+          const tokenResponse = await axios.post('https://accounts.spotify.com/api/token', new URLSearchParams(requestData), {
+            headers: {
+              'content-type': 'application/x-www-form-urlencoded',
+              'Authorization': 'Basic ' + btoa(`${client_id}:${client_secret}`),
+            },
+          });
 
-        // Redirect to home page after successful login
-        window.location.href = '/';
+          const { access_token, refresh_token } = tokenResponse.data;
+
+          localStorage.setItem('access_token', access_token);
+          localStorage.setItem('refresh_token', refresh_token);
+
+          // Redirect to home page after successful login
+          // window.location.href = '/';
+        } catch (e) { 
+          console.error('Error fetching access token:', e);
+        }
       };
 
       fetchToken();
