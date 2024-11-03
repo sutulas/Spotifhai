@@ -1,25 +1,18 @@
 import React, { useState } from 'react';
 import axios from 'axios'; // Only if you are using axios
+import Chatbot from './components/Chatbot/Chatbot';
+import Main from './pages/Main';
+import ChatbotWrapper from './components/ChatbotWrapper';
+import { testEndpoint } from './API/API';
 
 const App = () => {
-  const [response, setResponse] = useState('');
-
-  const testEndpoint = async () => {
-    try {
-      const res = await axios.get('http://localhost:8000/'); 
-      const data = res.data;
-      setResponse(data.response);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      setResponse('Error fetching data');
-    }
-  };
 
   return (
     <div>
       <h1>FastAPI Endpoint Test</h1>
       <button onClick={testEndpoint}>Test Endpoint</button>
-      <p>Response: {response}</p>
+      <p>Response: {}</p>
+      <Main/>
     </div>
   );
 };
