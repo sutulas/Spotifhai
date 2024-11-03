@@ -18,24 +18,25 @@ var client_id = '683a2dd6216f45c9b5fa196ea7118ece'; // your clientId
 var client_secret = 'ecefeeb0b5d74a63ba41eec1441aab5f'; // Your secret
 var redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
 
-
 const generateRandomString = (length) => {
   return crypto
-  .randomBytes(60)
-  .toString('hex')
-  .slice(0, length);
+    .randomBytes(60)
+    .toString('hex')
+    .slice(0, length);
 }
 
 var stateKey = 'spotify_auth_state';
-
 var app = express();
 
 app.use(express.static(__dirname + '/public'))
    .use(cors())
    .use(cookieParser());
 
-app.get('/login', function(req, res) {
+// Variables to store ID and access token
+let userId = null;
+let accessToken = null;
 
+app.get('/login', function(req, res) {
   var state = generateRandomString(16);
   res.cookie(stateKey, state);
 
@@ -52,10 +53,8 @@ app.get('/login', function(req, res) {
 });
 
 app.get('/callback', function(req, res) {
-
   // your application requests refresh and access tokens
   // after checking the state parameter
-
   var code = req.query.code || null;
   var state = req.query.state || null;
   var storedState = req.cookies ? req.cookies[stateKey] : null;
@@ -83,27 +82,28 @@ app.get('/callback', function(req, res) {
 
     request.post(authOptions, function(error, response, body) {
       if (!error && response.statusCode === 200) {
-
-        var access_token = body.access_token,
-            refresh_token = body.refresh_token;
+        accessToken = body.access_token;
+        var refresh_token = body.refresh_token;
 
         var options = {
           url: 'https://api.spotify.com/v1/me',
-          headers: { 'Authorization': 'Bearer ' + access_token },
+          headers: { 'Authorization': 'Bearer ' + accessToken },
           json: true
         };
 
-        // use the access token to access the Spotify Web API
+        // Use the access token to access the Spotify Web API and save user ID
         request.get(options, function(error, response, body) {
-          console.log(body);
+          if (!error && response.statusCode === 200) {
+            userId = body.id;
+            console.log('User ID:', userId);
+            console.log('Access Token:', accessToken);
+          } else {
+            console.error('Failed to retrieve user info:', error);
+          }
         });
 
-        // we can also pass the token to the browser to make requests from there
-        res.redirect('/#' +
-          querystring.stringify({
-            access_token: access_token,
-            refresh_token: refresh_token
-          }));
+        // Do not redirect; just end the response
+        res.status(200).send('Authentication successful. You can close this window.');
       } else {
         res.redirect('/#' +
           querystring.stringify({
@@ -115,7 +115,6 @@ app.get('/callback', function(req, res) {
 });
 
 app.get('/refresh_token', function(req, res) {
-
   var refresh_token = req.query.refresh_token;
   var authOptions = {
     url: 'https://accounts.spotify.com/api/token',
@@ -132,11 +131,9 @@ app.get('/refresh_token', function(req, res) {
 
   request.post(authOptions, function(error, response, body) {
     if (!error && response.statusCode === 200) {
-      var access_token = body.access_token,
-          refresh_token = body.refresh_token;
+      accessToken = body.access_token;
       res.send({
-        'access_token': access_token,
-        'refresh_token': refresh_token
+        'access_token': accessToken
       });
     }
   });
