@@ -84,6 +84,7 @@ const App = () => {
         <div>
           <h2>Welcome, {profile.display_name}</h2>
           <p>Email: {profile.email}</p>
+          <p>UserID: {profile.id}</p>
           <img src={profile.images[0]?.url} alt="Profile" style={{ width: '100px', borderRadius: '50%' }} />
         </div>
       )}
