@@ -16,6 +16,7 @@ const App = () => {
       state: state,
       scope: scope,
     }).toString()}`;
+    console.log(url);
 
     window.location.href = url;
   };
