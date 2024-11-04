@@ -27,9 +27,11 @@ const App = () => {
 
   useEffect(() => {
     const code = new URLSearchParams(window.location.search).get('code');
-    const state = new URLSearchParams(window.location.search).get('state');
-
-    if (code) {
+  
+    // Check if the code has been used to prevent double-fetching
+    if (code && !sessionStorage.getItem('codeUsed')) {
+      sessionStorage.setItem('codeUsed', 'true'); // Mark code as used
+  
       const fetchToken = async () => {
         try {
           const requestData = {
@@ -37,33 +39,28 @@ const App = () => {
             redirect_uri: redirect_uri,
             grant_type: 'authorization_code',
           };
-
-          // Log the request data
-          console.log('Request Data:', requestData);
-          console.log('Authorization Header:', 'Basic ' + btoa(`${client_id}:${client_secret}`));
-
+  
           const tokenResponse = await axios.post('https://accounts.spotify.com/api/token', new URLSearchParams(requestData), {
             headers: {
               'content-type': 'application/x-www-form-urlencoded',
               'Authorization': 'Basic ' + btoa(`${client_id}:${client_secret}`),
             },
           });
-
+  
           const { access_token, refresh_token } = tokenResponse.data;
-
+  
           localStorage.setItem('access_token', access_token);
           localStorage.setItem('refresh_token', refresh_token);
-
-          // Redirect to home page after successful login
-          // window.location.href = '/';
+  
         } catch (e) { 
-          console.error('Error fetching access token:', e);
+          console.error('Error fetching access token:', e.response ? e.response.data : e.message);
         }
       };
-
+  
       fetchToken();
     }
   }, []);
+  
 
   return (
     <div>
