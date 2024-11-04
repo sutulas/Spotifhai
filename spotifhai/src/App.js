@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
 const client_id = '683a2dd6216f45c9b5fa196ea7118ece'; // Your client ID
@@ -6,6 +6,8 @@ const client_secret = 'ecefeeb0b5d74a63ba41eec1441aab5f'; // Your client secret
 const redirect_uri = 'http://localhost:3000/callback'; // Your redirect URI
 
 const App = () => {
+  const [profile, setProfile] = useState(null); // State to store user profile
+
   const handleLogin = () => {
     const state = generateRandomString(16);
     const scope = 'user-read-private user-read-email';
@@ -16,7 +18,6 @@ const App = () => {
       state: state,
       scope: scope,
     }).toString()}`;
-    console.log(url);
 
     window.location.href = url;
   };
@@ -31,7 +32,7 @@ const App = () => {
     // Check if the code has been used to prevent double-fetching
     if (code && !sessionStorage.getItem('codeUsed')) {
       sessionStorage.setItem('codeUsed', 'true'); // Mark code as used
-  
+
       const fetchToken = async () => {
         try {
           const requestData = {
@@ -47,11 +48,11 @@ const App = () => {
             },
           });
   
-          const { access_token, refresh_token } = tokenResponse.data;
-  
+          const { access_token } = tokenResponse.data;
           localStorage.setItem('access_token', access_token);
-          localStorage.setItem('refresh_token', refresh_token);
-  
+
+          // Fetch and display user profile
+          fetchUserProfile(access_token);
         } catch (e) { 
           console.error('Error fetching access token:', e.response ? e.response.data : e.message);
         }
@@ -60,12 +61,32 @@ const App = () => {
       fetchToken();
     }
   }, []);
-  
+
+  const fetchUserProfile = async (token) => {
+    try {
+      const profileResponse = await axios.get('https://api.spotify.com/v1/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      setProfile(profileResponse.data); // Store profile data in state
+    } catch (e) {
+      console.error('Error fetching profile:', e.response ? e.response.data : e.message);
+    }
+  };
 
   return (
     <div>
       <h1>Spotify Authentication</h1>
-      <button onClick={handleLogin}>Login with Spotify</button>
+      {!profile ? (
+        <button onClick={handleLogin}>Login with Spotify</button>
+      ) : (
+        <div>
+          <h2>Welcome, {profile.display_name}</h2>
+          <p>Email: {profile.email}</p>
+          <img src={profile.images[0]?.url} alt="Profile" style={{ width: '100px', borderRadius: '50%' }} />
+        </div>
+      )}
     </div>
   );
 };
