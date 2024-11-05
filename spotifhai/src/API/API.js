@@ -21,17 +21,15 @@ export async function testEndpoint() {
     }
 };
 
-export async function getPlaylistUrl({prompt}) {
+export async function getPlaylistUrl({ prompt }) {
     const userId = localStorage.getItem("user_id");
     const accessToken = localStorage.getItem("access_token");
-
+    console.log({ userId, prompt, accessToken });
     try {
-        const response = await axios.get('http://localhost:8000/', {
-            params: {
-                token: accessToken,
-                userId: userId,
-                message: prompt
-            }
+        const response = await axios.post('http://localhost:8000/generatePlaylists', {
+            userId: userId,
+            userPrompt: prompt,
+            accessToken: accessToken
         });
         
         console.log(response.data); // Log the response from the API
@@ -39,6 +37,5 @@ export async function getPlaylistUrl({prompt}) {
     } catch (error) {
         console.error('Error fetching data:', error);
     }
-
 }
 

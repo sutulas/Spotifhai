@@ -45,10 +45,7 @@ class QueryResponse(BaseModel):
 
 
 
-# Root endpoint
-@app.get("/")
-async def read_root():
-    return QueryResponse(response="Hello World!")
+
 
 
 
@@ -109,6 +106,8 @@ def generate_playlist_params(user_query):
         return None
     else:
         return params.parsed
+
+
 
 
 
@@ -213,4 +212,13 @@ def generate_playlist(user_query, token, user_d):
         return "Errors generating playlist, please try again"
 
 
+class PlaylistRequest(BaseModel):
+    userId: str
+    userPrompt: str
+    accessToken: str
+
+@app.post("/generatePlaylists")
+async def generate_playlists(request: PlaylistRequest):
+    res = generate_playlist(request.userPrompt, request.accessToken, request.userId)
+    return QueryResponse(response=res)
     
