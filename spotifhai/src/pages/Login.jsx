@@ -23,7 +23,7 @@ export default function Login({ setLogin }) {
             state: state,
             scope: scope,
         }).toString()}`;
-
+        setLogin();
         window.location.href = url;
     };
 
