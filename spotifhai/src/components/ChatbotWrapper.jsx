@@ -9,13 +9,11 @@ const ChatbotWrapper = ({chatBotResponseToMessage}) => {
         setLastMessage(userMessage);
     };
 
-
-
     return (
         <div className="App">
-            <h1>Chatbot Interface</h1>
             <Chatbot addAIMessage={chatBotResponseToMessage} onUserMessage={onUserMessage} />
         </div>
+
     );
 };
 
