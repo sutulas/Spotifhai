@@ -11,7 +11,7 @@ const ChatbotWrapper = ({chatBotResponseToMessage}) => {
 
     return (
         <div className="App">
-            <Chatbot addAIMessage={chatBotResponseToMessage} onUserMessage={onUserMessage} />
+            <Chatbot addAIMessage={chatBotResponseToMessage} onUserMessage={onUserMessage}/>
         </div>
 
     );

@@ -116,6 +116,7 @@ const StyledButton = styled('button')({
 
 export default function Main() {
     const [tooltipOpen, setTooltipOpen] = useState(false);
+    const [url, setUrl] = useState();
     const tooltipRef = useRef(null);
 
     const handleButtonClick = () => {
@@ -126,6 +127,12 @@ export default function Main() {
         if (tooltipRef.current && !tooltipRef.current.contains(event.target)) {
             setTooltipOpen(false);
         }
+    };
+
+    const handleUrl = async (prompt) => {
+        const response = await getPlaylistUrl(prompt);
+        setUrl(response);
+        return response
     };
 
     useEffect(() => {
@@ -156,7 +163,7 @@ export default function Main() {
                     }
                 }}>
                     <ChatbotContainer>
-                        <ChatbotWrapper chatBotResponseToMessage={getPlaylistUrl} />
+                        <ChatbotWrapper chatBotResponseToMessage={handleUrl} />
                     </ChatbotContainer>
                 </Paper>
             </Slide>
@@ -165,7 +172,7 @@ export default function Main() {
                     <AIVisualElement>
                         <AlbumIcon style={{ fontSize: '50px', color: iMessageColors.textColor }} />
                     </AIVisualElement>
-                    <PlaceholderContainer>
+                    {!url ? (<PlaceholderContainer>
                         <Typography variant="h4" gutterBottom>
                             Ask me anything!
                         </Typography>
@@ -193,10 +200,15 @@ export default function Main() {
                             arrow
                             placement="top"
                         >
-                            <StyledButton onClick={handleButtonClick}>How?</StyledButton>
-                            {/* <SpotifyEmbed url={"https://open.spotify.com/embed/playlist/3gp01lyf3rjjgNicy220cf?utm_source=generator"}/> */}
+
                         </Tooltip>
-                    </PlaceholderContainer>
+                    </PlaceholderContainer>) :
+                        (<Box>
+                            <h1>{url}</h1>
+                            <SpotifyEmbed url={"https://open.spotify.com/embed/playlist/3gp01lyf3rjjgNicy220cf?utm_source=generator"}
+                            />
+                        </Box>)
+                    }
                 </ContentContainer>
             </Slide>
         </StyledContainer>
