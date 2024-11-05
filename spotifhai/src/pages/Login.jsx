@@ -76,9 +76,6 @@ export default function Login({ setLogin }) {
         
             localStorage.setItem("user_id", user_id);
             localStorage.setItem("auth_token", token);
-            console.log("user_id:", user_id, "access_token:", token); // Check values before the request
-
-            const test = await sendData(user_id, token);
     
             // Now, set login to true once data is successfully sent
             setLogin(true);
