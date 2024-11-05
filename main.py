@@ -41,20 +41,6 @@ class QueryResponse(BaseModel):
 
 # Root endpoint with token, userId, and message parameters
 @app.get("/")
-<<<<<<< HEAD
-async def read_root(
-    token: str = Query(..., description="Authorization token"),
-    userId: str = Query(..., description="User ID"),
-    message: str = Query(..., description="Message to process"),
-):
-    # Check if token, userId, and message are valid (Example logic)
-    if not token or not userId or not message:
-        raise HTTPException(status_code=400, detail="Missing required parameters")
-
-    # Example response, echoing the inputs for demonstration
-    response_message = f"Received message: '{message}' from user: '{userId}' with token: '{token}'"
-    return QueryResponse(response=response_message)
-=======
 async def read_root():
     return QueryResponse(response="Hello World!")
 
@@ -205,4 +191,3 @@ def generate_playlist(user_query):
 
 
     
->>>>>>> 72403a28b32fcca199e348c6be41b7cc088e9632
