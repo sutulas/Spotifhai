@@ -1,16 +1,15 @@
 import axios from "axios";
 
 
-export async function testEndpoint() {
+export async function sendData() {
     const userId = localStorage.getItem("user_id");
     const accessToken = localStorage.getItem("access_token");
 
     try {
-        const response = await axios.get('http://localhost:8000/', {
+        const response = await axios.post('http://localhost:8000/', {
             params: {
                 token: accessToken,
-                userId: userId,
-                message: 'Hello, this is a sample message'
+                userId: userId
             }
         });
 
@@ -21,7 +20,8 @@ export async function testEndpoint() {
     }
 };
 
-export async function getPlaylistUrl({ prompt }) {
+
+export async function getPlaylistUrl({prompt}) {
     const userId = localStorage.getItem("user_id");
     const accessToken = localStorage.getItem("access_token");
     console.log({ userId, prompt, accessToken });
