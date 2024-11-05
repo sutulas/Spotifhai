@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,7 +15,6 @@ import requests
 # Load environment variables from .env file
 load_dotenv()
 
-
 app = FastAPI()
 
 # Configure CORS
@@ -29,7 +28,6 @@ app.add_middleware(
 
 # Load OpenAI API key from environment variable
 client = OpenAI(
-    # This is the default and can be omitted
     api_key=os.environ.get("OPENAI_API_KEY"),
 )
 
@@ -40,11 +38,8 @@ class QueryRequest(BaseModel):
 
 class QueryResponse(BaseModel):
     response: str
-    
 
-
-
-# Root endpoint
+# Root endpoint with token, userId, and message parameters
 @app.get("/")
 async def read_root():
     return QueryResponse(response="Hello World!")

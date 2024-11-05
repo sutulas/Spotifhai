@@ -1,13 +1,23 @@
 import axios from "axios";
 
-export const testEndpoint = async (str) => {
+
+export async function testEndpoint() {
+    const userId = localStorage.getItem("user_id");
+    const accessToken = localStorage.getItem("access_token");
+
     try {
-        const res = await axios.post('http://localhost:8000/', {
-            query: str // Send the user query as part of the request body
+        const response = await axios.get('http://localhost:8000/', {
+            params: {
+                token: accessToken,
+                userId: userId,
+                message: 'Hello, this is a sample message'
+            }
         });
-        const data = res.data;
-        return data.response;
+        
+        console.log(response.data); // Log the response from the API
+        return response.data.response;
     } catch (error) {
         console.error('Error fetching data:', error);
     }
 };
+
