@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Box, Paper, Typography, Slide, CssBaseline, Tooltip } from '@mui/material';
 import { styled } from '@mui/system';
 import ChatbotWrapper from '../components/ChatbotWrapper';
-import { testEndpoint } from '../API/API';
+import { getPlaylistUrl, testEndpoint } from '../API/API';
 import AlbumIcon from '@mui/icons-material/Album';
 import SpotifyEmbed from '../components/SpotifyEmbed/SpotifyEmbed';
 
@@ -156,7 +156,7 @@ export default function Main() {
                     }
                 }}>
                     <ChatbotContainer>
-                        <ChatbotWrapper chatBotResponseToMessage={testEndpoint} />
+                        <ChatbotWrapper chatBotResponseToMessage={getPlaylistUrl} />
                     </ChatbotContainer>
                 </Paper>
             </Slide>
