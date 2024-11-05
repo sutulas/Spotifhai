@@ -83,10 +83,6 @@ def generate_playlist_params(user_query):
     - target_liveness: Float (0-1) for how much the songs sound like a live performance.
     - target_loudness: Float (0-1) for the loudness level of the songs.
     - target_popularity: Float (0-1) for the songs' popularity.
-    
-    Always return a list of generes and limit.
-    If any of the target parameters seems irrelevant to the theme, return 3 for that parameter. Otherwise all the floats should be from 0-1
-
     """
 
     # Make the API call
@@ -106,7 +102,7 @@ def generate_playlist_params(user_query):
         print(params.refusal)
         return None
     else:
-        return params
+        return params.parsed
 
 
 
@@ -124,22 +120,18 @@ def generate_playlist(user_query):
     while i < 3:
         p = generate_playlist_params(user_query)
         if p != None:
-            limit=p.limit
-            seed_genres=p.seed_genres
-            target_danceability=p.target_danceability
-            target_acousticness=p.target_acousticness
-            target_energy=p.target_energy
-            target_instrumentalness=p.target_instrumentallness
-            target_liveness=p.target_liveness
-            target_loudness=p.target_loudness
-            target_popularity=p.target_popularity
             uris = [] 
             # This may be slightly more complicated because we have to get them from spotify
             # seed_artists = '0XNa1vTidXlvJ2gHSsRi4A'
             # seed_tracks='55SfSsxneljXOk5S3NVZIW'
 
             # PERFORM THE QUERY - TODO: Setup dynamic adding to this query based on if the return is within the range
-            songs_query = f'{rec_url}limit={limit}&market={market}&seed_genres={seed_genres}&target_danceability={target_danceability}'
+            songs_query = f'{rec_url}limit={p.limit}&market={market}&seed_genres={p.seed_genres}&target_danceability={p.target_danceability}&target_acousticness={p.target_acousticness}'
+            songs_query += f'&target_energy={p.target_energy}'
+            songs_query += f'&target_instrumentalness={p.target_instrumentalness}'
+            songs_query += f'&target_liveness={p.target_liveness}'
+            songs_query += f'&target_loudness={p.target_loudness}'
+            songs_query += f'&target_popularity={p.target_popularity}'
             # songs_query += f'&seed_artists={seed_artists}'
             # songs_query += f'&seed_tracks={seed_tracks}'
 
