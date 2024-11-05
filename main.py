@@ -123,10 +123,17 @@ def generate_playlist_params(user_query):
         return None
     else:
         return params.parsed
+    
+def get_user_uri(user_id, token):
+    uri_j = requests.get(url = "https://api.spotify.com/v1/me", headers={"Content-Type":"application/json", 
+                                    "Authorization":f"Bearer {token}"})
+    uri_r = uri_j.json()["uri"]
+    uri = re.findall(r'si=([a-zA-Z0-9]+)', uri_r)[0]
+    print(uri)
 
 
 
-def generate_playlist(user_query, token, user_d):
+def generate_playlist(user_query, token, user_id):
     rec_url = "https://api.spotify.com/v1/recommendations?"
 
     # We need these two things along with the user query to make the call
@@ -156,7 +163,7 @@ def generate_playlist(user_query, token, user_d):
             songs_query += f'&target_popularity={p.target_popularity}'
             #songs_query += f'&seed_artists={seed_artists}'
             # songs_query += f'&seed_tracks={seed_tracks}'
-            artist_llm = client.ChatCompletion.create(
+            artist_llm = client.chat.completions.create(
                 model="gpt-4o-mini", 
                 messages=[
                     {"role": "system", "content": "You are a music expert assistant."},
@@ -166,12 +173,12 @@ def generate_playlist(user_query, token, user_d):
             )
 
             # Extract and return the artist's name from the response
-            artist = artist_llm.choices[0].message['content'].strip()
+            artist = artist_llm.choices[0].message.content
             print(artist)
 
             # Get artist id for seeding
             artist_url = f'https://api.spotify.com/v1/search?q={artist}&type=artist&limit=1'
-            artist_response = requests.post(url = artist_url, headers={"Content-Type":"application/json", 
+            artist_response = requests.get(url = artist_url, headers={"Content-Type":"application/json", 
                                     "Authorization":f"Bearer {token}"})
             artist_id = artist_response.json()['artists']['items']['uri']
             artist_id = re.match(r'spotify:artist:(.*)', artist_id )
@@ -188,8 +195,8 @@ def generate_playlist(user_query, token, user_d):
                         print(f"{i+1}) \"{j['name']}\" by {j['artists'][0]['name']}")
 
             ### CREATE A PLAYLIST
-
-            playlist_url = f"https://api.spotify.com/v1/users/{user_id}/playlists"
+            uri = get_user_uri(user_id, token)
+            playlist_url = f"https://api.spotify.com/v1/users/{uri}/playlists"
 
             # These should also be automatically generated
             playlist_title = user_query + " - By SpotifHAI"
