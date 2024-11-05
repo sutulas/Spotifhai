@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Box, Paper, Typography, Slide, CssBaseline, Tooltip } from '@mui/material';
 import { styled } from '@mui/system';
 import ChatbotWrapper from '../components/ChatbotWrapper';
-import { getPlaylistUrl, testEndpoint } from '../API/API';
+import { getPlaylistUrl, sendData } from '../API/API';
 import AlbumIcon from '@mui/icons-material/Album';
 import SpotifyEmbed from '../components/SpotifyEmbed/SpotifyEmbed';
 
@@ -118,7 +118,7 @@ export default function Main() {
     const [tooltipOpen, setTooltipOpen] = useState(false);
     const [url, setUrl] = useState();
     const tooltipRef = useRef(null);
-    
+
     const handleButtonClick = () => {
         setTooltipOpen(true);
     };
@@ -130,6 +130,7 @@ export default function Main() {
     };
 
     const handleUrl = async (prompt) => {
+        
         const response = await getPlaylistUrl(prompt);
         setUrl(response);
         return response

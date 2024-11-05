@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Button, Typography, Box, Container, Grid, Grid2 } from '@mui/material';
 import { motion } from 'framer-motion';
 import { styled } from '@mui/system';
+import { sendData } from '../API/API';
 import MusicNoteIcon from '@mui/icons-material/MusicNote';
 
 export default function Login({ setLogin }) {
@@ -71,13 +72,15 @@ export default function Login({ setLogin }) {
                     'Authorization': `Bearer ${token}`,
                 },
             });
-            setProfile(profileResponse.data);
-            localStorage.setItem("user_id", profileResponse.data.id);
+            setProfile(profileResponse.data);const user_id = profileResponse.data.id;
+        
+            localStorage.setItem("user_id", user_id);
             localStorage.setItem("auth_token", token);
-            await axios.post('http://localhost:8000/credentials', {
-                user_id: user_id,
-                auth_token: token,
-            });
+            console.log("user_id:", user_id, "access_token:", token); // Check values before the request
+
+            const test = await sendData(user_id, token);
+    
+            // Now, set login to true once data is successfully sent
             setLogin(true);
         } catch (e) {
             console.error('Error fetching profile:', e.response ? e.response.data : e.message);

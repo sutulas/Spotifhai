@@ -44,13 +44,27 @@ class QueryResponse(BaseModel):
     
 
 
-
+user_id = ""
+auth_token = ""
 # Root endpoint
 @app.get("/")
 async def read_root():
-    return QueryResponse(response="Hello World!")
+    return QueryResponse(response=f"id: {user_id}, token: {auth_token}")
 
+class Credentials(BaseModel):
+    user_id: str
+    token: str
 
+@app.post("/credentials")
+async def get_credentials(credentials: Credentials):
+    global user_id
+    global auth_token
+    user_id = credentials.user_id
+    auth_token = credentials.token
+    # You can now use user_id and auth_token as needed
+    # For example, save to a database or perform other actions
+    print(user_id, auth_token)
+    return {"message": "Credentials received", "user_id": user_id, "auth_token": auth_token}
 
 class SongRecommendationParams(BaseModel):
     limit: int
