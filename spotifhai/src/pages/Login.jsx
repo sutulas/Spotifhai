@@ -23,8 +23,9 @@ export default function Login({ setLogin }) {
             state: state,
             scope: scope,
         }).toString()}`;
-
+        
         window.location.href = url;
+        setLogin();
     };
 
     const generateRandomString = (length) => {
@@ -72,6 +73,11 @@ export default function Login({ setLogin }) {
             });
             setProfile(profileResponse.data);
             localStorage.setItem("user_id", profileResponse.data.id);
+            localStorage.setItem("auth_token", token);
+            await axios.post('http://localhost:8000/credentials', {
+                user_id: user_id,
+                auth_token: token,
+            });
             setLogin(true);
         } catch (e) {
             console.error('Error fetching profile:', e.response ? e.response.data : e.message);
