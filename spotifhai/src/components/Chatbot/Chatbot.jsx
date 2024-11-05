@@ -55,7 +55,7 @@ const Chatbot = ({ addAIMessage, onUserMessage }) => {
       <div
         ref={chatWindowRef} // Attach the ref to the chat window
         className="chat-window"
-        style={{ maxHeight: '400px', overflowY: 'auto', padding: '10px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}
+        style={{ height: '400px', overflowY: 'auto', padding: '10px 20px', display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}
       >
         {messages.map((msg) => (
           <div key={msg.id} className={`message ${msg.sender}`} style={{

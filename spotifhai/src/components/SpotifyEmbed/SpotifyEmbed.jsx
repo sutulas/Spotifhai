@@ -1,9 +1,24 @@
 import React from 'react';
-import { Box } from '@mui/material';
+import { Box, Card, CardMedia } from '@mui/material';
 
-function SpotifyEmbed({url}) {
+function SpotifyEmbed({ url, playlist = false }) {
+    if (playlist) {
+        return (
+            <Card sx={{ borderRadius: 2, overflow: 'hidden' }}>
+                <CardMedia
+                    component="iframe"
+                    src={url}
+                    title="Spotify Playlist"
+                    width="100%"
+                    height="352"
+                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                    loading="lazy"
+                />
+            </Card>
+        )
+    }
     return (
-        <Box 
+        <Box
             sx={{
                 borderRadius: '12px',
                 overflow: 'hidden', // Ensures border radius applies to iframe
