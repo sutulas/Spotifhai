@@ -112,6 +112,9 @@ class SongRecommendationParams(BaseModel):
     target_loudness: float
     target_popularity: float
 
+class SeedArtists(BaseModel):
+    artists: str
+
 
 def generate_playlist_params(user_query):
     all_genres = ["acoustic","afrobeat","alt-rock","alternative","ambient","anime","black-metal","bluegrass","blues",
@@ -130,7 +133,7 @@ def generate_playlist_params(user_query):
     
     Parameters to return:
     - limit: Integer (1-50) representing the number of songs to include in the playlist.
-    - seed_genres: A comma-separated list of genres relevant to the theme from the following list: {all_genres}.
+    - seed_genres: A comma-separated list (1-3) of genres relevant to the theme from the following list: {all_genres}.
     - target_danceability: Float (0-1) for how suitable the songs should be for dancing.
     - target_acousticness: Float (0-1) indicating how acoustic the songs should sound.
     - target_energy: Float (0-1) for the songs' energy level.

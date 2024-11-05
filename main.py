@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -11,9 +11,11 @@ from io import StringIO
 import json
 import pandas
 import requests
+import re
 
 # Load environment variables from .env file
 load_dotenv()
+
 
 app = FastAPI()
 
@@ -28,6 +30,7 @@ app.add_middleware(
 
 # Load OpenAI API key from environment variable
 client = OpenAI(
+    # This is the default and can be omitted
     api_key=os.environ.get("OPENAI_API_KEY"),
 )
 
@@ -38,8 +41,11 @@ class QueryRequest(BaseModel):
 
 class QueryResponse(BaseModel):
     response: str
+    
 
-# Root endpoint with token, userId, and message parameters
+
+
+# Root endpoint
 @app.get("/")
 async def read_root():
     return QueryResponse(response="Hello World!")
@@ -125,15 +131,37 @@ def generate_playlist(user_query):
             # seed_artists = '0XNa1vTidXlvJ2gHSsRi4A'
             # seed_tracks='55SfSsxneljXOk5S3NVZIW'
 
-            # PERFORM THE QUERY - TODO: Setup dynamic adding to this query based on if the return is within the range
-            songs_query = f'{rec_url}limit={p.limit}&market={market}&seed_genres={p.seed_genres}&target_danceability={p.target_danceability}&target_acousticness={p.target_acousticness}'
+            # PERFORM THE QUERY -
+            songs_query = f'{rec_url}limit={p.limit}&market={market}&seed_genres={p.seed_genres}'
+            songs_query += f'&target_danceability={p.target_danceability}'
+            songs_query += f'&target_acousticness={p.target_acousticness}'
             songs_query += f'&target_energy={p.target_energy}'
             songs_query += f'&target_instrumentalness={p.target_instrumentalness}'
             songs_query += f'&target_liveness={p.target_liveness}'
             songs_query += f'&target_loudness={p.target_loudness}'
             songs_query += f'&target_popularity={p.target_popularity}'
-            # songs_query += f'&seed_artists={seed_artists}'
+            #songs_query += f'&seed_artists={seed_artists}'
             # songs_query += f'&seed_tracks={seed_tracks}'
+            artist_llm = client.ChatCompletion.create(
+                model="gpt-4o-mini", 
+                messages=[
+                    {"role": "system", "content": "You are a music expert assistant."},
+                    {"role": "user", "content": f"I want to create a playlist around this idea: '{user_query}'. What is the one artist that best fits this theme? Only respond with the title of the artist"}
+                ],
+                max_tokens=50  # Limit tokens since only one artist is needed
+            )
+
+            # Extract and return the artist's name from the response
+            artist = artist_llm.choices[0].message['content'].strip()
+            print(artist)
+
+            # Get artist id for seeding
+            artist_url = f'https://api.spotify.com/v1/search?q={artist}&type=artist&limit=1'
+            artist_response = requests.post(url = artist_url, headers={"Content-Type":"application/json", 
+                                    "Authorization":f"Bearer {token}"})
+            artist_id = artist_response.json()['artists']['items']['uri']
+            artist_id = re.match(r'spotify:artist:(.*)', artist_id )
+            songs_query += f'&seed_artists={artist_id}'
 
             songs_response = requests.get(songs_query, 
                         headers={"Content-Type":"application/json", 
@@ -150,15 +178,17 @@ def generate_playlist(user_query):
             playlist_url = f"https://api.spotify.com/v1/users/{user_id}/playlists"
 
             # These should also be automatically generated
+            playlist_title = user_query + " - By SpotifHAI"
+            
             request_body = json.dumps({
-                    "name": "Indie bands like Franz Ferdinand and Foals but using Python",
+                    "name": playlist_title,
                     "description": "My first programmatic playlist, yooo!",
                     "public": False
                     })
             playlist_response = requests.post(url = playlist_url, data = request_body, headers={"Content-Type":"application/json", 
                                     "Authorization":f"Bearer {token}"})
 
-            create_playlist_url = playlist_response.json()['external_urls']['spotify']
+            url = playlist_response.json()['external_urls']['spotify']
             print(playlist_response.status_code)
 
 
@@ -175,11 +205,12 @@ def generate_playlist(user_query):
                                     "Authorization":f"Bearer {token}"})
 
             print(add_songs_response.status_code)     
-            return "SOMETHING"
+            return url
         else:
             print("Error generating parameters")
             i += 1
         print("All attempts to generate parameters/playlist failed")
+        return "Errors generating playlist, please try again"
 
 
     
