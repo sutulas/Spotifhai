@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 
-const Chatbot = ({ addAIMessage, onUserMessage }) => {
+const Chatbot = ({ addAIMessage, onUserMessage}) => {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const chatWindowRef = useRef(null); // Create a reference for the chat window

@@ -11,7 +11,7 @@ from io import StringIO
 import json
 import pandas
 import requests
-import re
+import regex as re
 
 # Load environment variables from .env file
 load_dotenv()
@@ -112,12 +112,12 @@ def generate_playlist_params(user_query):
 
 
 
-def generate_playlist(user_query):
+def generate_playlist(user_query, token, user_d):
     rec_url = "https://api.spotify.com/v1/recommendations?"
 
     # We need these two things along with the user query to make the call
-    token = "FILL_IN_YOUR_TOKEN"
-    user_id = "FILL_IN_YOUR_USER_ID"
+    #token = "FILL_IN_YOUR_TOKEN"
+    #user_id = "FILL_IN_YOUR_USER_ID"
 
     market="US"
 
