@@ -4,6 +4,7 @@ import { styled } from '@mui/system';
 import ChatbotWrapper from '../components/ChatbotWrapper';
 import { testEndpoint } from '../API/API';
 import AlbumIcon from '@mui/icons-material/Album';
+import SpotifyEmbed from '../components/SpotifyEmbed/SpotifyEmbed';
 
 // iMessage colors
 const iMessageColors = {
@@ -193,6 +194,7 @@ export default function Main() {
                             placement="top"
                         >
                             <StyledButton onClick={handleButtonClick}>How?</StyledButton>
+                            {/* <SpotifyEmbed url={"https://open.spotify.com/embed/playlist/3gp01lyf3rjjgNicy220cf?utm_source=generator"}/> */}
                         </Tooltip>
                     </PlaceholderContainer>
                 </ContentContainer>
