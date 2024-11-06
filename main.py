@@ -151,12 +151,12 @@ def generate_playlist(user_query, token, user_id):
 
                 # PERFORM THE QUERY -
                 songs_query = f'{rec_url}limit={p.limit}&market={market}&seed_genres={",".join(p.seed_genres)}'
-                # songs_query += f'&target_danceability={p.target_danceability}'
-                # songs_query += f'&target_acousticness={p.target_acousticness}'
-                # songs_query += f'&target_energy={p.target_energy}'
-                # songs_query += f'&target_instrumentalness={p.target_instrumentalness}'
-                # songs_query += f'&target_liveness={p.target_liveness}'
-                # songs_query += f'&target_loudness={p.target_loudness}'
+                songs_query += f'&target_danceability={p.target_danceability}'
+                songs_query += f'&target_acousticness={p.target_acousticness}'
+                songs_query += f'&target_energy={p.target_energy}'
+                songs_query += f'&target_instrumentalness={p.target_instrumentalness}'
+                songs_query += f'&target_liveness={p.target_liveness}'
+                songs_query += f'&target_loudness={p.target_loudness}'
                 # songs_query += f'&target_popularity={p.target_popularity}'
                 #songs_query += f'&seed_artists={seed_artists}'
                 # songs_query += f'&seed_tracks={seed_tracks}'
@@ -179,21 +179,21 @@ def generate_playlist(user_query, token, user_id):
                 artist_response = requests.get(url = artist_url, headers={"Content-Type":"application/json", 
                                         "Authorization":f"Bearer {token}"})
                 artist_response = json.loads(artist_response.text)
-                print(artist_response)
+                #print(artist_response)
                 artist_id = artist_response['artists']['items'][0]['uri']
               
                 artist_id = re.match(r'spotify:artist:(\S+)', artist_id).group(1)
                 songs_query += f'&seed_artists={artist_id}'
 
-                print("songs_query")
+                #print("songs_query")
                 # songs_query = re.sub(r'%2C', ',', songs_query)
                 # songs_query = re.sub(r'singer-songwriter', '', songs_query)
                 # songs_query = re.sub(r',,', ',', songs_query)
-                print(songs_query)
+                #print(songs_query)
                 songs_response = requests.get(songs_query, 
                             headers={"Content-Type":"application/json", 
                                         "Authorization":f"Bearer {token}"})
-                print(songs_response.text)
+                #print(songs_response.text)
                 songs_json = songs_response.json()
 
                 print('Recommended Songs:')
@@ -215,9 +215,9 @@ def generate_playlist(user_query, token, user_id):
                         })
                 playlist_response = requests.post(url = playlist_url, data = request_body, headers={"Content-Type":"application/json", 
                                         "Authorization":f"Bearer {token}"})
-                print(playlist_url)
-                print(request_body)
-                print(playlist_response.json())
+                # print(playlist_url)
+                # print(request_body)
+                # print(playlist_response.json())
 
                 url = playlist_response.json()['external_urls']['spotify']
                 
