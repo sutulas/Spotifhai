@@ -115,8 +115,14 @@ def get_user_uri(user_id, token):
     uri_j = requests.get(url = "https://api.spotify.com/v1/me", headers={"Content-Type":"application/json", 
                                     "Authorization":f"Bearer {token}"})
     uri_r = uri_j.json()["uri"]
-    uri = re.findall(r'si=([a-zA-Z0-9]+)', uri_r)[0]
-    print(uri)
+    print(uri_r)
+    matches = re.findall(r'spotify:user:([a-zA-Z0-9]+)', uri_r)
+    
+    # UPDATED REGEX here to get the right user id
+
+    if matches:
+        uri_r = matches[0]
+    return(uri_r)
 
 
 
@@ -140,17 +146,21 @@ def generate_playlist(user_query, token, user_id):
                 # seed_artists = '0XNa1vTidXlvJ2gHSsRi4A'
                 # seed_tracks='55SfSsxneljXOk5S3NVZIW'
 
+                p.seed_genres = p.seed_genres[:3]
+                # Restricted to 3 genres for now, seems like more than 3 or 4 causes and error
+
                 # PERFORM THE QUERY -
-                songs_query = f'{rec_url}limit={p.limit}&market={market}&seed_genres={"%2C".join(p.seed_genres)}'
-                songs_query += f'&target_danceability={p.target_danceability}'
-                songs_query += f'&target_acousticness={p.target_acousticness}'
-                songs_query += f'&target_energy={p.target_energy}'
-                songs_query += f'&target_instrumentalness={p.target_instrumentalness}'
-                songs_query += f'&target_liveness={p.target_liveness}'
-                songs_query += f'&target_loudness={p.target_loudness}'
-                songs_query += f'&target_popularity={p.target_popularity}'
+                songs_query = f'{rec_url}limit={p.limit}&market={market}&seed_genres={",".join(p.seed_genres)}'
+                # songs_query += f'&target_danceability={p.target_danceability}'
+                # songs_query += f'&target_acousticness={p.target_acousticness}'
+                # songs_query += f'&target_energy={p.target_energy}'
+                # songs_query += f'&target_instrumentalness={p.target_instrumentalness}'
+                # songs_query += f'&target_liveness={p.target_liveness}'
+                # songs_query += f'&target_loudness={p.target_loudness}'
+                # songs_query += f'&target_popularity={p.target_popularity}'
                 #songs_query += f'&seed_artists={seed_artists}'
                 # songs_query += f'&seed_tracks={seed_tracks}'
+
                 artist_llm = client.chat.completions.create(
                     model="gpt-4o-mini", 
                     messages=[
@@ -176,6 +186,9 @@ def generate_playlist(user_query, token, user_id):
                 songs_query += f'&seed_artists={artist_id}'
 
                 print("songs_query")
+                # songs_query = re.sub(r'%2C', ',', songs_query)
+                # songs_query = re.sub(r'singer-songwriter', '', songs_query)
+                # songs_query = re.sub(r',,', ',', songs_query)
                 print(songs_query)
                 songs_response = requests.get(songs_query, 
                             headers={"Content-Type":"application/json", 
@@ -185,13 +198,13 @@ def generate_playlist(user_query, token, user_id):
 
                 print('Recommended Songs:')
                 for i,j in enumerate(songs_json['tracks']):
+                        if i <20:
                             uris.append(j['uri'])
                             print(f"{i+1}) \"{j['name']}\" by {j['artists'][0]['name']}")
-
                 ### CREATE A PLAYLIST
                 uri = get_user_uri(user_id, token)
                 playlist_url = f"https://api.spotify.com/v1/users/{uri}/playlists"
-
+                
                 # These should also be automatically generated
                 playlist_title = user_query + " - By SpotifHAI"
                 
@@ -202,8 +215,12 @@ def generate_playlist(user_query, token, user_id):
                         })
                 playlist_response = requests.post(url = playlist_url, data = request_body, headers={"Content-Type":"application/json", 
                                         "Authorization":f"Bearer {token}"})
+                print(playlist_url)
+                print(request_body)
+                print(playlist_response.json())
 
                 url = playlist_response.json()['external_urls']['spotify']
+                
                 print(playlist_response.status_code)
 
 
@@ -219,7 +236,9 @@ def generate_playlist(user_query, token, user_id):
                 add_songs_response = requests.post(url = add_songs_url, data = add_songs_request_body, headers={"Content-Type":"application/json", 
                                         "Authorization":f"Bearer {token}"})
 
-                print(add_songs_response.status_code)     
+                print(add_songs_response.status_code)    
+                url = re.sub(r'(spotify\.com/)', r'\1embed/', url) 
+                # Adding \embed to the url to make it an embed link
                 return url
             else:
                 print("Error generating parameters")
@@ -239,7 +258,7 @@ class PlaylistRequest(BaseModel):
 async def generate_playlists(request: PlaylistRequest):
     print(request.userPrompt)
     print(request.accessToken)
-    print(request.userId)
+    print('id', request.userId)
     res = generate_playlist(request.userPrompt, request.accessToken, request.userId)
     return QueryResponse(response=res)
     

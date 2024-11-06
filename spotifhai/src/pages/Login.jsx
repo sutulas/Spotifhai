@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Button, Typography, Box, Container, Grid, Grid2 } from '@mui/material';
+import { Button, Typography, Box, Container, Grid } from '@mui/material';
 import { motion } from 'framer-motion';
 import { styled } from '@mui/system';
-import { sendData } from '../API/API';
 import MusicNoteIcon from '@mui/icons-material/MusicNote';
+
+// Updated Login component so that refresh works
+// Added create playist authority to scope
 
 export default function Login({ setLogin }) {
 
@@ -12,11 +14,12 @@ export default function Login({ setLogin }) {
     const client_secret = 'ecefeeb0b5d74a63ba41eec1441aab5f'; // Your client secret
     const redirect_uri = 'http://localhost:3000/callback'; // Your redirect URI
 
-    const [profile, setProfile] = useState(null); // State to store user profile
+    const [profile, setProfile] = useState(null);
 
     const handleLogin = () => {
         const state = generateRandomString(16);
-        const scope = 'user-read-private user-read-email';
+        const scope = 'user-read-private user-read-email playlist-modify-public playlist-modify-private user-library-modify';
+        // Added playlist-modify-public, playlist-modify-private, and user-library-modify to scope
         const url = `https://accounts.spotify.com/authorize?${new URLSearchParams({
             response_type: 'code',
             client_id: client_id,
@@ -26,7 +29,6 @@ export default function Login({ setLogin }) {
         }).toString()}`;
         
         window.location.href = url;
-        setLogin();
     };
 
     const generateRandomString = (length) => {
@@ -34,34 +36,40 @@ export default function Login({ setLogin }) {
     };
 
     useEffect(() => {
-        const code = new URLSearchParams(window.location.search).get('code');
-        if (code && !sessionStorage.getItem('codeUsed')) {
-            sessionStorage.setItem('codeUsed', 'true');
+        // Check if access token is stored
+        const storedToken = localStorage.getItem('access_token');
+        if (storedToken) {
+            fetchUserProfile(storedToken);
+        } else {
+            const code = new URLSearchParams(window.location.search).get('code');
+            if (code && !sessionStorage.getItem('codeUsed')) {
+                sessionStorage.setItem('codeUsed', 'true');
 
-            const fetchToken = async () => {
-                try {
-                    const requestData = {
-                        code: code,
-                        redirect_uri: redirect_uri,
-                        grant_type: 'authorization_code',
-                    };
+                const fetchToken = async () => {
+                    try {
+                        const requestData = {
+                            code: code,
+                            redirect_uri: redirect_uri,
+                            grant_type: 'authorization_code',
+                        };
 
-                    const tokenResponse = await axios.post('https://accounts.spotify.com/api/token', new URLSearchParams(requestData), {
-                        headers: {
-                            'content-type': 'application/x-www-form-urlencoded',
-                            'Authorization': 'Basic ' + btoa(`${client_id}:${client_secret}`),
-                        },
-                    });
+                        const tokenResponse = await axios.post('https://accounts.spotify.com/api/token', new URLSearchParams(requestData), {
+                            headers: {
+                                'content-type': 'application/x-www-form-urlencoded',
+                                'Authorization': 'Basic ' + btoa(`${client_id}:${client_secret}`),
+                            },
+                        });
 
-                    const { access_token } = tokenResponse.data;
-                    localStorage.setItem('access_token', access_token);
-                    fetchUserProfile(access_token);
-                } catch (e) {
-                    console.error('Error fetching access token:', e.response ? e.response.data : e.message);
-                }
-            };
+                        const { access_token } = tokenResponse.data;
+                        localStorage.setItem('access_token', access_token);
+                        fetchUserProfile(access_token);
+                    } catch (e) {
+                        console.error('Error fetching access token:', e.response ? e.response.data : e.message);
+                    }
+                };
 
-            fetchToken();
+                fetchToken();
+            }
         }
     }, []);
 
@@ -72,19 +80,15 @@ export default function Login({ setLogin }) {
                     'Authorization': `Bearer ${token}`,
                 },
             });
-            setProfile(profileResponse.data);const user_id = profileResponse.data.id;
-        
-            localStorage.setItem("user_id", user_id);
+            setProfile(profileResponse.data);
+            localStorage.setItem("user_id", profileResponse.data.id);
             localStorage.setItem("auth_token", token);
-    
-            // Now, set login to true once data is successfully sent
             setLogin(true);
         } catch (e) {
             console.error('Error fetching profile:', e.response ? e.response.data : e.message);
         }
     };
 
-    // Custom animation and styling
     const LogoBox = styled(Box)({
         color: '#1DB954',
         fontSize: '5rem',
@@ -144,66 +148,6 @@ export default function Login({ setLogin }) {
                     Connect with Spotify
                 </Button>
             </motion.div>
-
-            <Grid2
-                container
-                spacing={4}
-                sx={{ mt: 10 }}
-                alignItems="center"
-                justifyContent="center"
-            >
-                <Grid2 item xs={12} md={4}>
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 1.4 }}
-                    >
-                        <Box sx={{ textAlign: 'center', p: 2 }}>
-                            <Typography variant="h6" sx={{ color: '#1DB954' }}>
-                                Personalized Playlists
-                            </Typography>
-                            <Typography sx={{ color: '#777' }}>
-                                Create playlists curated just for you.
-                            </Typography>
-                        </Box>
-                    </motion.div>
-                </Grid2>
-
-                <Grid2 item xs={12} md={4}>
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 1.4, delay: 0.3 }}
-                    >
-                        <Box sx={{ textAlign: 'center', p: 2 }}>
-                            <Typography variant="h6" sx={{ color: '#1DB954' }}>
-                                Visualize Listening History
-                            </Typography>
-                            <Typography sx={{ color: '#777' }}>
-                                Explore your music habits with interactive charts.
-                            </Typography>
-                        </Box>
-                    </motion.div>
-                </Grid2>
-
-                <Grid2 item xs={12} md={4}>
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 1.4, delay: 0.6 }}
-                    >
-                        <Box sx={{ textAlign: 'center', p: 2 }}>
-                            <Typography variant="h6" sx={{ color: '#1DB954' }}>
-                                Seamless Queue Management
-                            </Typography>
-                            <Typography sx={{ color: '#777' }}>
-                                Queue songs and manage playback easily.
-                            </Typography>
-                        </Box>
-                    </motion.div>
-                </Grid2>
-            </Grid2>
         </Container>
     );
-
 };
