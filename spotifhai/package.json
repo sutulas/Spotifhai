@@ -23,7 +23,7 @@
   "homepage": "http://sutulas.github.io/Spotifhai",
   "scripts": {
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d <build folder name>",
+    "deploy": "gh-pages -d build",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
