@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Card, CardMedia } from '@mui/material';
 
-function SpotifyEmbed({ url, playlist = false }) {
+function SpotifyEmbeded({ url, playlist = false }) {
     console.log("Spotify with url");
     console.log(url);
     
@@ -35,4 +35,6 @@ function SpotifyEmbed({ url, playlist = false }) {
     );
 }
 
-export default SpotifyEmbed;
+export default SpotifyEmbeded;
+
+// "https://open.spotify.com/embed/4duA7Ne7VlqYFHlNCxK9uF"

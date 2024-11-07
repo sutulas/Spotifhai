@@ -4,9 +4,10 @@ import { maxHeight, Stack, styled } from '@mui/system';
 import ChatbotWrapper from '../components/ChatbotWrapper';
 import { getPlaylistUrl, getRecentlyListened } from '../API/API';
 import AlbumIcon from '@mui/icons-material/Album';
-import SpotifyEmbed from '../components/SpotifyEmbed/SpotifyEmbed';
 import AudiotrackIcon from '@mui/icons-material/Audiotrack';
 import StockTicker from '../components/Ticker';
+import { Spotify } from 'react-spotify-embed';
+import SpotifyEmbeded from '../components/SpotifyEmbed/SpotifyEmbeded';
 
 // iMessage colors
 const iMessageColors = {
@@ -157,8 +158,13 @@ export default function Main() {
         console.log(prompt);
         const response = await getPlaylistUrl({ prompt });
         console.log("Response:");
-        console.log(response);
-        setUrl(response.url);
+        console.log(response.url);
+        setTimeout(() => { 
+
+            console.log("Peener");
+            console.log(response.url);
+            setUrl(response.url);
+        }, 3000);
         localStorage.setItem('playlist_url', response.url);
         return response.response;
     };
@@ -256,31 +262,7 @@ export default function Main() {
                             </PlaceholderContainer>
                         ) : (
                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <Box
-                                    sx={{
-                                        borderRadius: '12px',
-                                        overflow: 'hidden',
-                                        maxHeight: '100%',
-                                        width: '100%',
-                                        width: '900px',
-                                        maxWidth: '50vw',
-                                        margin: 'auto',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center'
-                                    }}
-                                >
-                                    <iframe
-                                        key={url}  // Force reload when `url` changes
-                                        src={url}
-                                        width="100%"
-                                        height="352"
-                                        frameBorder="0"
-                                        allowFullScreen=""
-                                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                                        loading="lazy"
-                                    ></iframe>
-                                </Box>
+                               <SpotifyEmbeded url={url}/>
                             </Box>
                         )}
                     </ContentContainer>
