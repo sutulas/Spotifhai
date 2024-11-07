@@ -2,48 +2,11 @@ import React from 'react';
 import { Box, Card, CardMedia } from '@mui/material';
 
 function SpotifyEmbed({ url, playlist = false }) {
-    if (playlist) {
-        return (
-            <Card sx={{ borderRadius: 2, overflow: 'hidden' }}>
-                <CardMedia
-                    component="iframe"
-                    src={url}
-                    title="Spotify Playlist"
-                    width="100%"
-                    height="352"
-                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                    loading="lazy"
-                />
-            </Card>
-        )
-    }
+    console.log("Spotify with url");
+    console.log(url);
+    
     return (
-        <Box
-            sx={{
-                borderRadius: '12px',
-                overflow: 'hidden', // Ensures border radius applies to iframe
-                maxHeight: '80%',
-                width: '100%',
-                width: '900px', // Adjust to fit your layout
-                maxWidth : '50vw',
-                margin: 'auto',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent:'center'
-            }}
-        >
-            <iframe
-                src={url}
-                width="100%"
-                height="600"
-                frameBorder="0"
-                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                loading="lazy"
-                style={{
-                    borderRadius: '12px'
-                }}
-            />
-        </Box>
+        <iframe src={url} width="100%" height="352" frameBorder="0" allowfullscreen="" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
     );
 }
 

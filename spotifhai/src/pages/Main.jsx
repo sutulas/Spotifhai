@@ -185,7 +185,7 @@ export default function Main() {
                     }}>Log Out</Button>
                 </Toolbar>
             </StyledAppBar>
-    
+
             {/* Main content */}
             <StyledContainer sx={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
                 <CssBaseline />
@@ -215,7 +215,7 @@ export default function Main() {
                         </Stack>
                     </Paper>
                 </Slide>
-    
+
                 <Slide direction="left" in mountOnEnter unmountOnExit>
                     <ContentContainer sx={{ height: '90%', overflow: 'hidden' }}>
                         {!url && (
@@ -255,15 +255,39 @@ export default function Main() {
                                 </Tooltip>
                             </PlaceholderContainer>
                         ) : (
-                            <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-                                <SpotifyEmbed url={url} />
+                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <Box
+                                    sx={{
+                                        borderRadius: '12px',
+                                        overflow: 'hidden',
+                                        maxHeight: '100%',
+                                        width: '100%',
+                                        width: '900px',
+                                        maxWidth: '50vw',
+                                        margin: 'auto',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center'
+                                    }}
+                                >
+                                    <iframe
+                                        key={url}  // Force reload when `url` changes
+                                        src={url}
+                                        width="100%"
+                                        height="352"
+                                        frameBorder="0"
+                                        allowFullScreen=""
+                                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                                        loading="lazy"
+                                    ></iframe>
+                                </Box>
                             </Box>
                         )}
                     </ContentContainer>
                 </Slide>
-    
-                        
-                {/* Position the StockTicker at the bottom */}
+
+
+                {/* Position the StockTickerat the bottom */}
                 <Box sx={{
                     position: 'absolute',
                     bottom: 0,
@@ -278,6 +302,6 @@ export default function Main() {
             </StyledContainer>
         </Box>
     );
-    
+
 
 }

@@ -11,7 +11,8 @@ import { styled } from '@mui/system';
 export default function Login() {
     const client_id = '683a2dd6216f45c9b5fa196ea7118ece'; // Your client ID
     const client_secret = 'ecefeeb0b5d74a63ba41eec1441aab5f'; // Your client secret
-    const redirect_uri = 'http://localhost:3000/callback'; // Your redirect URI
+    const redirect_uri = 'https://spotifhai.onrender.com/callback'; // Your redirect URI
+
 
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(false);  // Track the loading state
