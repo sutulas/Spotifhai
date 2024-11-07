@@ -14,8 +14,9 @@ const iMessageColors = {
 
 const StockTicker = ({ text }) => {
   // Adjust duration based on the length of the text (longer text will scroll slower)
-  console.log("Text");
+  console.log("Text")
   console.log(text);
+  const scrollDuration = Math.max(30, 0.1 * text.length); // Minimum duration of 10 seconds
 
   return (
     <Box
@@ -32,7 +33,7 @@ const StockTicker = ({ text }) => {
         initial={{ x: '100%' }}  // Ensure it starts off-screen to the right
         animate={{ x: ['40%', '-100%'] }} // Move from right to left
         transition={{
-          x: { repeat: Infinity, duration: 30, ease: 'linear' }, // Adjusted speed based on text length
+          x: { repeat: Infinity, duration: scrollDuration, ease: 'linear' }, // Adjusted speed based on text length
         }}
         style={{
           display: 'inline-block',
@@ -43,7 +44,6 @@ const StockTicker = ({ text }) => {
           sx={{
             display: 'inline-block',
             color: iMessageColors.textColor, // Dark text for contrast
-            fontWeight: '600', // Slightly bolder font weight
             fontFamily: 'Roboto, sans-serif', // Modern font family
             whiteSpace: 'nowrap',
             fontSize: '1.2rem', // Adjusted font size for better readability

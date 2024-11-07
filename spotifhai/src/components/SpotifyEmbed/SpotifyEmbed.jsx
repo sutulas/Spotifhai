@@ -22,10 +22,14 @@ function SpotifyEmbed({ url, playlist = false }) {
             sx={{
                 borderRadius: '12px',
                 overflow: 'hidden', // Ensures border radius applies to iframe
+                maxHeight: '80%',
                 width: '100%',
                 width: '900px', // Adjust to fit your layout
                 maxWidth : '50vw',
-                margin: 'auto'
+                margin: 'auto',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent:'center'
             }}
         >
             <iframe

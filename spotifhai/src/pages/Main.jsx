@@ -255,13 +255,14 @@ export default function Main() {
                                 </Tooltip>
                             </PlaceholderContainer>
                         ) : (
-                            <Box>
+                            <Box sx={{display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
                                 <SpotifyEmbed url={url} />
                             </Box>
                         )}
                     </ContentContainer>
                 </Slide>
     
+                        
                 {/* Position the StockTicker at the bottom */}
                 <Box sx={{
                     position: 'absolute',
