@@ -20,7 +20,10 @@
     "react-ticker": "^1.3.2",
     "web-vitals": "^2.1.4"
   },
+  "homepage": "http://sutulas.github.io/Spotifhai",
   "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d <build folder name>",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
