@@ -270,10 +270,16 @@ def get_recently_listened(token):
     # Convert to milliseconds
     ctime = str(round(time.time() * 1000))
     url = 'https://api.spotify.com/v1/me/player/recently-played?limit=10&before=' + ctime
-    print(ctime)
     rec_list = requests.get(url = url, headers={"Content-Type":"application/json", "Authorization":f"Bearer {token}"})
-    print("Rec list \n")
-    print(rec_list)
+    print("Rec list")
+    print(rec_list.json())
+    rec_played = []
+    for item in rec_list.json()['items']:
+        track_name = item['track']['name']
+        artists = [artist['name'] for artist in item['track']['artists']]
+        rec_played.append(track_name + ', '.join(artists))
+    print(rec_played)
+    return rec_played
 
 class PlaylistRequest(BaseModel):
     userId: str
@@ -290,8 +296,12 @@ async def generate_playlists(request: PlaylistRequest):
     return QueryResponse(response=res, url=url)
     
 
+class SecondResponse(BaseModel):
+    response: str
     
 @app.post("/authCheck")
 async def checkAuth(request: PlaylistRequest):
-    return QueryResponse(response = get_user_uri(request.userId, request.accessToken), url="")
+    res = get_user_uri(request.userId, request.accessToken)
+    print(res)
+    return SecondResponse(response = get_user_uri(request.userId, request.accessToken))
     
