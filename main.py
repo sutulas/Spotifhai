@@ -303,4 +303,10 @@ async def checkAuth(request: PlaylistRequest):
     res = get_user_uri(request.userId, request.accessToken)
     print(res)
     return SecondResponse(response = get_user_uri(request.userId, request.accessToken))
+
+
+@app.post("/recentlyListened")
+async def recentlyListened(request: PlaylistRequest):
+    res = get_recently_listened(request.accessToken)
+    return SecondResponse(response = "Recently Listened Songs:     " + " ------- ".join(res))
     
