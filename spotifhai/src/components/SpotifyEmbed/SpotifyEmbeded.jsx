@@ -23,7 +23,7 @@ function SpotifyEmbeded({ url, playlist = false }) {
             <iframe
                 src={url}
                 width="100%"
-                height="600"
+                height="400"
                 frameBorder="0"
                 allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                 loading="lazy"
