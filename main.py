@@ -103,7 +103,7 @@ def generate_playlist_params(user_query):
         ],
         response_format=SongRecommendationParams,
     )
-
+    print(completion.choices[0].message)
     params = completion.choices[0].message
 
     # If the model refuses to respond, you will get a refusal message
@@ -174,7 +174,7 @@ def generate_playlist(user_query, token, user_id):
                 # songs_query += f'&target_popularity={p.target_popularity}'
                 #songs_query += f'&seed_artists={seed_artists}'
                 # songs_query += f'&seed_tracks={seed_tracks}'
-
+                
                 artist_llm = client.chat.completions.create(
                     model="gpt-4o-mini", 
                     messages=[
@@ -193,7 +193,7 @@ def generate_playlist(user_query, token, user_id):
                 artist_response = requests.get(url = artist_url, headers={"Content-Type":"application/json", 
                                         "Authorization":f"Bearer {token}"})
                 artist_response = json.loads(artist_response.text)
-                print(artist_response)
+            #   print(artist_response)
                 artist_id = artist_response['artists']['items'][0]['uri']
               
                 artist_id = re.match(r'spotify:artist:(\S+)', artist_id).group(1)
@@ -203,11 +203,11 @@ def generate_playlist(user_query, token, user_id):
                 # songs_query = re.sub(r'%2C', ',', songs_query)
                 # songs_query = re.sub(r'singer-songwriter', '', songs_query)
                 # songs_query = re.sub(r',,', ',', songs_query)
-                #print(songs_query)
+                print(songs_query)
                 songs_response = requests.get(songs_query, 
                             headers={"Content-Type":"application/json", 
                                         "Authorization":f"Bearer {token}"})
-                #print(songs_response.text)
+                print(songs_response.text)
                 songs_json = songs_response.json()
 
                 print('Recommended Songs:')
