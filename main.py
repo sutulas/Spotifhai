@@ -291,7 +291,7 @@ async def generate_playlists(request: PlaylistRequest):
     print(request.accessToken)
     print('id', request.userId)
     res, url = generate_playlist(request.userPrompt, request.accessToken, request.userId)
-    get_recently_listened(request.accessToken)
+    #get_recently_listened(request.accessToken)
     return QueryResponse(response=res, url=url)
     
 
