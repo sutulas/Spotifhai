@@ -1,5 +1,24 @@
 import axios from "axios";
 
+ 
+export async function testLogin() { 
+    const userId = localStorage.getItem("user_id");
+    const accessToken = localStorage.getItem("access_token");
+    try {
+        const response = await axios.post('http://localhost:8000/authCheck', {
+            userId: userId,
+            userPrompt: "prompt",
+            accessToken: accessToken
+        });
+        console.log("Logging");
+        console.log(response.data); // Log the response from the API
+        return true;
+    } catch (error) {
+        localStorage.clear();
+        console.log("Returning false");
+        return false;
+    }
+}
 
 export async function sendData(userId, accessToken) {
     console.log("user_id:", userId, "access_token:", accessToken); // Check values before the request

@@ -179,13 +179,13 @@ def generate_playlist(user_query, token, user_id):
                 artist_response = requests.get(url = artist_url, headers={"Content-Type":"application/json", 
                                         "Authorization":f"Bearer {token}"})
                 artist_response = json.loads(artist_response.text)
-                #print(artist_response)
+                print(artist_response)
                 artist_id = artist_response['artists']['items'][0]['uri']
               
                 artist_id = re.match(r'spotify:artist:(\S+)', artist_id).group(1)
                 songs_query += f'&seed_artists={artist_id}'
 
-                #print("songs_query")
+                print("songs_query")
                 # songs_query = re.sub(r'%2C', ',', songs_query)
                 # songs_query = re.sub(r'singer-songwriter', '', songs_query)
                 # songs_query = re.sub(r',,', ',', songs_query)
@@ -215,9 +215,9 @@ def generate_playlist(user_query, token, user_id):
                         })
                 playlist_response = requests.post(url = playlist_url, data = request_body, headers={"Content-Type":"application/json", 
                                         "Authorization":f"Bearer {token}"})
-                # print(playlist_url)
-                # print(request_body)
-                # print(playlist_response.json())
+                print(playlist_url)
+                print(request_body)
+                print(playlist_response.json())
 
                 url = playlist_response.json()['external_urls']['spotify']
                 
@@ -245,7 +245,7 @@ def generate_playlist(user_query, token, user_id):
                 i += 1
     except Exception as e:
         print(e)
-        return "Errors generating playlist, please try again"
+        return "Errors generating playlist, please try again: " + str(e)
         
 
 
@@ -262,5 +262,7 @@ async def generate_playlists(request: PlaylistRequest):
     res = generate_playlist(request.userPrompt, request.accessToken, request.userId)
     return QueryResponse(response=res)
     
-    
+@app.post("/authCheck")
+async def checkAuth(request: PlaylistRequest):
+    return QueryResponse(response = get_user_uri(request.userId, request.accessToken))
     

@@ -8,7 +8,7 @@ import MusicNoteIcon from '@mui/icons-material/MusicNote';
 // Updated Login component so that refresh works
 // Added create playist authority to scope
 
-export default function Login({ setLogin }) {
+export default function Login() {
 
     const client_id = '683a2dd6216f45c9b5fa196ea7118ece'; // Your client ID
     const client_secret = 'ecefeeb0b5d74a63ba41eec1441aab5f'; // Your client secret
@@ -83,7 +83,7 @@ export default function Login({ setLogin }) {
             setProfile(profileResponse.data);
             localStorage.setItem("user_id", profileResponse.data.id);
             localStorage.setItem("auth_token", token);
-            setLogin(true);
+            window.location.reload();
         } catch (e) {
             console.error('Error fetching profile:', e.response ? e.response.data : e.message);
         }
