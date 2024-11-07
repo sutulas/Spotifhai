@@ -182,7 +182,7 @@ export default function Main() {
                                 Ask me anything!
                             </Typography>
                             <Typography variant="body1" gutterBottom>
-                                I’m here to generate playlists, visualize data, and answer your questions. Just start typing!
+                                I’m here to generate playlists based on your input. Just start typing!
                             </Typography>
                             <Tooltip
                                 ref={tooltipRef}

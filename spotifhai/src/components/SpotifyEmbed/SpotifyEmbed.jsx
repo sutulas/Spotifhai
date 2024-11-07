@@ -23,7 +23,7 @@ function SpotifyEmbed({ url, playlist = false }) {
                 borderRadius: '12px',
                 overflow: 'hidden', // Ensures border radius applies to iframe
                 width: '100%',
-                maxWidth: '600px', // Adjust to fit your layout
+                maxWidth: '1000px', // Adjust to fit your layout
                 margin: 'auto'
             }}
         >
