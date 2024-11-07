@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Paper, Typography, Slide, CssBaseline, Tooltip } from '@mui/material';
-import { styled } from '@mui/system';
+import { Box, Paper, Typography, Slide, CssBaseline, Tooltip, AppBar, Toolbar, Button } from '@mui/material';
+import { Stack, styled } from '@mui/system';
 import ChatbotWrapper from '../components/ChatbotWrapper';
-import { getPlaylistUrl, sendData } from '../API/API';
+import { getPlaylistUrl } from '../API/API';
 import AlbumIcon from '@mui/icons-material/Album';
 import SpotifyEmbed from '../components/SpotifyEmbed/SpotifyEmbed';
+import AudiotrackIcon from '@mui/icons-material/Audiotrack';
 
 // iMessage colors
 const iMessageColors = {
@@ -114,6 +115,18 @@ const StyledButton = styled('button')({
     },
 });
 
+// Styled AppBar for toolbar
+const StyledAppBar = styled(AppBar)({
+    backgroundColor: '#ffffff',
+    color: iMessageColors.textColor,
+    boxShadow: 'none',
+});
+
+const Logo = styled('img')({
+    height: '30px',
+    marginRight: '8px',
+});
+
 export default function Main() {
     const [tooltipOpen, setTooltipOpen] = useState(false);
     const [url, setUrl] = useState();
@@ -147,76 +160,97 @@ export default function Main() {
     }, []);
 
     return (
-        <StyledContainer>
-            <CssBaseline />
-            <Slide direction="right" in mountOnEnter unmountOnExit>
-                <Paper sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    flex: 1,
-                    padding: '16px',
-                    backgroundColor: "#FFFFFF",
-                    color: 'white',
-                    borderRadius: '16px',
-                    boxShadow: '0px 4px 30px rgba(0, 0, 0, 0.2)',
-                    animation: 'slideIn 0.6s ease-out',
-                    '@keyframes slideIn': {
-                        from: { opacity: 0, transform: 'translateX(-50px)' },
-                        to: { opacity: 1, transform: 'translateX(0)' },
-                    }
-                }}>
-                    <ChatbotContainer>
-                        <ChatbotWrapper chatBotResponseToMessage={handleUrl} />
-                    </ChatbotContainer>
-                </Paper>
-            </Slide>
-            <Slide direction="left" in mountOnEnter unmountOnExit>
-                <ContentContainer>
-                    {!url && (
-                        <AIVisualElement>
-                            <AlbumIcon style={{ fontSize: '50px', color: iMessageColors.textColor }} />
-                        </AIVisualElement>
-                    )}
-                    {!url ? (
-                        <PlaceholderContainer>
-                            <Typography variant="h4" gutterBottom>
-                                Ask me anything!
-                            </Typography>
-                            <Typography variant="body1" gutterBottom>
-                                I’m here to generate playlists based on your input. Just start typing!
-                            </Typography>
-                            <Tooltip
-                                ref={tooltipRef}
-                                open={tooltipOpen}
-                                title={
-                                    <Box>
-                                        <Typography variant="body1" gutterBottom>
-                                            Here are some example questions to get started:
-                                        </Typography>
-                                        <ul>
-                                            <li>Generate a playlist based on mood</li>
-                                            <li>Give me data visualizations on top artists</li>
-                                            <li>Suggest new music based on my preferences</li>
-                                        </ul>
-                                        <Typography variant="body2">
-                                            You can ask anything related to music or playlists. I'm here to help!
-                                        </Typography>
-                                    </Box>
-                                }
-                                arrow
-                                placement="top"
-                            >
-                            </Tooltip>
-                        </PlaceholderContainer>
-                    ) : (
-                        <Box>
-                            <SpotifyEmbed url={url} />
-                        </Box>
-                    )}
-                </ContentContainer>
-            </Slide>
+        <Box>
+            {/* AppBar (Toolbar) */}
+            <StyledAppBar position="sticky">
+                <Toolbar>
+                    <Stack direction="row" alignItems="center" spacing={2} flexGrow={1}>
+                        <AudiotrackIcon/>
+                        <Typography variant="h6" color="inherit">SpotifHAI</Typography>
+                    </Stack>
+                    <Button color="inherit" onClick={() => { 
+                        localStorage.clear();
+                        window.location.reload();
+                    }}>Log Out</Button>
+                </Toolbar>
+            </StyledAppBar>
 
-        </StyledContainer>
+            {/* Main content */}
+            <StyledContainer>
+                <CssBaseline />
+                <Slide direction="right" in mountOnEnter unmountOnExit>
+                    <Paper sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flex: 1,
+                        padding: '16px',
+                        backgroundColor: "#FFFFFF",
+                        color: 'white',
+                        borderRadius: '16px',
+                        boxShadow: '0px 4px 30px rgba(0, 0, 0, 0.2)',
+                        animation: 'slideIn 0.6s ease-out',
+                        '@keyframes slideIn': {
+                            from: { opacity: 0, transform: 'translateX(-50px)' },
+                            to: { opacity: 1, transform: 'translateX(0)' },
+                        }
+                    }}>
+                        <Stack sx={{alignItems: 'center', justifyContent : 'center'}}>
+                            <Typography variant='h4' sx={{p:3}} color='black' >{}</Typography>
+                            <img src=''/>
+                            <ChatbotContainer>
+                                <ChatbotWrapper chatBotResponseToMessage={handleUrl} />
+                            </ChatbotContainer>
+                        </Stack>
+                    </Paper>
+                </Slide>
+
+                <Slide direction="left" in mountOnEnter unmountOnExit>
+                    <ContentContainer>
+                        {!url && (
+                            <AIVisualElement>
+                                <AlbumIcon style={{ fontSize: '50px', color: iMessageColors.textColor }} />
+                            </AIVisualElement>
+                        )}
+                        {!url ? (
+                            <PlaceholderContainer>
+                                <Typography variant="h4" gutterBottom>
+                                    Ask me anything!
+                                </Typography>
+                                <Typography variant="body1" gutterBottom>
+                                    I’m here to generate playlists based on your input. Just start typing!
+                                </Typography>
+                                <Tooltip
+                                    ref={tooltipRef}
+                                    open={tooltipOpen}
+                                    title={
+                                        <Box>
+                                            <Typography variant="body1" gutterBottom>
+                                                Here are some example questions to get started:
+                                            </Typography>
+                                            <ul>
+                                                <li>Generate a playlist based on mood</li>
+                                                <li>Give me data visualizations on top artists</li>
+                                                <li>Suggest new music based on my preferences</li>
+                                            </ul>
+                                            <Typography variant="body2">
+                                                You can ask anything related to music or playlists. I'm here to help!
+                                            </Typography>
+                                        </Box>
+                                    }
+                                    arrow
+                                    placement="top"
+                                >
+                                </Tooltip>
+                            </PlaceholderContainer>
+                        ) : (
+                            <Box>
+                                <SpotifyEmbed url={url} />
+                            </Box>
+                        )}
+                    </ContentContainer>
+                </Slide>
+            </StyledContainer>
+        </Box>
     );
 }

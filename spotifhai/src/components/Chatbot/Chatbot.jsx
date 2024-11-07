@@ -7,7 +7,7 @@ const Chatbot = ({ addAIMessage, onUserMessage }) => {
   const chatWindowRef = useRef(null);
 
   React.useEffect(() => {
-    setMessages([{ id: 0, text: "Hi! I can create any Spotify playlist you'd like!", sender: 'ai' }]);
+    setMessages([{ id: 0, text: "Hi " + localStorage.getItem("name") + "!" +  " I can create any Spotify playlist you'd like!", sender: 'ai' }]);
   }, []);
 
 
