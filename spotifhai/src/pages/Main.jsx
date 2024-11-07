@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, Paper, Typography, Slide, CssBaseline, Tooltip, AppBar, Toolbar, Button } from '@mui/material';
-import { Stack, styled } from '@mui/system';
+import { maxHeight, Stack, styled } from '@mui/system';
 import ChatbotWrapper from '../components/ChatbotWrapper';
-import { getPlaylistUrl } from '../API/API';
+import { getPlaylistUrl, getRecentlyListened } from '../API/API';
 import AlbumIcon from '@mui/icons-material/Album';
 import SpotifyEmbed from '../components/SpotifyEmbed/SpotifyEmbed';
 import AudiotrackIcon from '@mui/icons-material/Audiotrack';
+import StockTicker from '../components/Ticker';
 
 // iMessage colors
 const iMessageColors = {
@@ -130,6 +131,16 @@ const Logo = styled('img')({
 export default function Main() {
     const [tooltipOpen, setTooltipOpen] = useState(false);
     const [url, setUrl] = useState();
+    const [recentlyListened, setRecentlyListened] = React.useState("");
+
+    React.useState(() => {
+        const getRecent = async () => {
+            const res = await getRecentlyListened();
+            console.log(res);
+            setRecentlyListened(res.response);
+        }
+        getRecent();
+    });
     const tooltipRef = useRef(null);
 
     const handleButtonClick = () => {
@@ -160,23 +171,23 @@ export default function Main() {
     }, []);
 
     return (
-        <Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
             {/* AppBar (Toolbar) */}
             <StyledAppBar position="sticky">
                 <Toolbar>
                     <Stack direction="row" alignItems="center" spacing={2} flexGrow={1}>
-                        <AudiotrackIcon/>
+                        <AudiotrackIcon />
                         <Typography variant="h6" color="inherit">SpotifHAI</Typography>
                     </Stack>
-                    <Button color="inherit" onClick={() => { 
+                    <Button color="inherit" onClick={() => {
                         localStorage.clear();
                         window.location.reload();
                     }}>Log Out</Button>
                 </Toolbar>
             </StyledAppBar>
-
+    
             {/* Main content */}
-            <StyledContainer>
+            <StyledContainer sx={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
                 <CssBaseline />
                 <Slide direction="right" in mountOnEnter unmountOnExit>
                     <Paper sx={{
@@ -188,6 +199,7 @@ export default function Main() {
                         backgroundColor: "#FFFFFF",
                         color: 'white',
                         borderRadius: '16px',
+                        height: "90%",
                         boxShadow: '0px 4px 30px rgba(0, 0, 0, 0.2)',
                         animation: 'slideIn 0.6s ease-out',
                         '@keyframes slideIn': {
@@ -195,18 +207,17 @@ export default function Main() {
                             to: { opacity: 1, transform: 'translateX(0)' },
                         }
                     }}>
-                        <Stack sx={{alignItems: 'center', justifyContent : 'center'}}>
-                            <Typography variant='h4' sx={{p:3}} color='black' >{}</Typography>
-                            <img src=''/>
+                        <Stack sx={{ alignItems: 'center', justifyContent: 'center' }}>
+                            <Typography variant='h4' sx={{ p: 3 }} color='black'>{ }</Typography>
                             <ChatbotContainer>
                                 <ChatbotWrapper chatBotResponseToMessage={handleUrl} />
                             </ChatbotContainer>
                         </Stack>
                     </Paper>
                 </Slide>
-
+    
                 <Slide direction="left" in mountOnEnter unmountOnExit>
-                    <ContentContainer>
+                    <ContentContainer sx={{ height: '90%', overflow: 'hidden' }}>
                         {!url && (
                             <AIVisualElement>
                                 <AlbumIcon style={{ fontSize: '50px', color: iMessageColors.textColor }} />
@@ -250,7 +261,22 @@ export default function Main() {
                         )}
                     </ContentContainer>
                 </Slide>
+    
+                {/* Position the StockTicker at the bottom */}
+                <Box sx={{
+                    position: 'absolute',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    backgroundColor: '#f5f5f5', // Optional, adjust the background color as needed
+                    padding: '8px',
+                    textAlign: 'center'
+                }}>
+                    <StockTicker text={recentlyListened} />
+                </Box>
             </StyledContainer>
         </Box>
     );
+    
+
 }

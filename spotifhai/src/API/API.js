@@ -1,6 +1,28 @@
 import axios from "axios";
 
  
+export async function getRecentlyListened() { 
+    const userId = localStorage.getItem("user_id");
+    const accessToken = localStorage.getItem("access_token");
+    console.log(userId);
+    console.log(accessToken);
+    try {
+        const response = await axios.post('http://localhost:8000/recentlyListened', {
+            userId: userId,
+            userPrompt: "prompt",
+            accessToken: accessToken
+        });
+        console.log("Logging");
+        console.log(response.data); // Log the response from the API
+        return response.data;
+    } catch (error) {
+        localStorage.clear();
+        console.log("Returning recently listened");
+        return false;
+    }
+}
+
+
 export async function testLogin() { 
     const userId = localStorage.getItem("user_id");
     const accessToken = localStorage.getItem("access_token");

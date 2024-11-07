@@ -76,11 +76,12 @@ export default function Login() {
                 },
             });
             setProfile(profileResponse.data);
-
+            console.log(profileResponse.data);
             // Set the user info and token in localStorage
             localStorage.setItem("user_id", profileResponse.data.id);
             localStorage.setItem("auth_token", token);
             localStorage.setItem("name", profileResponse.data.display_name);
+            localStorage.setItem("profResponse", JSON.stringify(profileResponse.data));
 
             // Ensure data is set before reloading the page
             setLoading(false);
