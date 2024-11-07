@@ -12,6 +12,7 @@ import json
 import pandas
 import requests
 import regex as re
+import time
 
 # Load environment variables from .env file
 load_dotenv()
@@ -113,8 +114,7 @@ def generate_playlist_params(user_query):
         return params.parsed
     
 def get_user_uri(user_id, token):
-    uri_j = requests.get(url = "https://api.spotify.com/v1/me", headers={"Content-Type":"application/json", 
-                                    "Authorization":f"Bearer {token}"})
+    uri_j = requests.get(url = "https://api.spotify.com/v1/me", headers={"Content-Type":"application/json", "Authorization":f"Bearer {token}"})
     uri_r = uri_j.json()["uri"]
     print(uri_r)
     matches = re.findall(r'spotify:user:([a-zA-Z0-9]+)', uri_r)
@@ -266,7 +266,14 @@ def generate_playlist(user_query, token, user_id):
         print(e)
         return "Errors generating playlist, please try again: " + str(e), "error"
         
-
+def get_recently_listened(token):
+    # Convert to milliseconds
+    ctime = str(round(time.time() * 1000))
+    url = 'https://api.spotify.com/v1/me/player/recently-played?limit=10&before=' + ctime
+    print(ctime)
+    rec_list = requests.get(url = url, headers={"Content-Type":"application/json", "Authorization":f"Bearer {token}"})
+    print("Rec list \n")
+    print(rec_list)
 
 class PlaylistRequest(BaseModel):
     userId: str
@@ -279,6 +286,7 @@ async def generate_playlists(request: PlaylistRequest):
     print(request.accessToken)
     print('id', request.userId)
     res, url = generate_playlist(request.userPrompt, request.accessToken, request.userId)
+    get_recently_listened(request.accessToken)
     return QueryResponse(response=res, url=url)
     
 
