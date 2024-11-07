@@ -23,14 +23,14 @@ function SpotifyEmbed({ url, playlist = false }) {
                 borderRadius: '12px',
                 overflow: 'hidden', // Ensures border radius applies to iframe
                 width: '100%',
-                maxWidth: '1000px', // Adjust to fit your layout
+                maxWidth: '600px', // Adjust to fit your layout
                 margin: 'auto'
             }}
         >
             <iframe
                 src={url}
                 width="100%"
-                height="352"
+                height="500"
                 frameBorder="0"
                 allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                 loading="lazy"
