@@ -49,7 +49,7 @@ auth_token = ""
 # Root endpoint
 @app.get("/")
 async def read_root():
-    return QueryResponse(response=f"Hello World")
+    return QueryResponse(response=f"id: {user_id}, token: {auth_token}")
 
 
 
@@ -242,4 +242,6 @@ async def generate_playlists(request: PlaylistRequest):
     print(request.userId)
     res = generate_playlist(request.userPrompt, request.accessToken, request.userId)
     return QueryResponse(response=res)
+    
+    
     
