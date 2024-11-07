@@ -231,10 +231,15 @@ def generate_playlist(user_query, token, user_id):
                         })
                 playlist_response = requests.post(url = playlist_url, data = request_body, headers={"Content-Type":"application/json", 
                                         "Authorization":f"Bearer {token}"})
+                print("playlist_url")
                 print(playlist_url)
+                
                 print(request_body)
+
                 print(playlist_response.json())
 
+                print("playlist_response")
+                print(playlist_response)
                 url = playlist_response.json()['external_urls']['spotify']
                 
                 print(playlist_response.status_code)
