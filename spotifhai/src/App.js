@@ -10,13 +10,14 @@ const App = () => {
   useEffect(() => { 
     const checkLogin = async () => {
       const res = await testLogin();
+      console.log("result", result);
       setResult(res);
       setLoading(false);
     };
     checkLogin();
   }, []);
 
-  console.log("result", result);
+  
 
   if (loading) {
     return <div>Loading...</div>;
