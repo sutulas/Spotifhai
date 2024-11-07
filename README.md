@@ -1,6 +1,6 @@
 View site at:
 
-LINK
+https://sutulas.github.io/Spotifhai/
 
 Intelligent Spotify Assistant using OpenAI API and react framework
 
