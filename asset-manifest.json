@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/Spotifhai/static/css/main.e6c13ad2.css",
-    "main.js": "/Spotifhai/static/js/main.5fa7cc66.js",
+    "main.js": "/Spotifhai/static/js/main.ad55daf4.js",
     "static/js/453.5b26f2ec.chunk.js": "/Spotifhai/static/js/453.5b26f2ec.chunk.js",
     "index.html": "/Spotifhai/index.html",
     "main.e6c13ad2.css.map": "/Spotifhai/static/css/main.e6c13ad2.css.map",
-    "main.5fa7cc66.js.map": "/Spotifhai/static/js/main.5fa7cc66.js.map",
+    "main.ad55daf4.js.map": "/Spotifhai/static/js/main.ad55daf4.js.map",
     "453.5b26f2ec.chunk.js.map": "/Spotifhai/static/js/453.5b26f2ec.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.e6c13ad2.css",
-    "static/js/main.5fa7cc66.js"
+    "static/js/main.ad55daf4.js"
   ]
 }
