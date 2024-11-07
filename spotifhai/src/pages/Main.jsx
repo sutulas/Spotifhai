@@ -171,49 +171,50 @@ export default function Main() {
             </Slide>
             <Slide direction="left" in mountOnEnter unmountOnExit>
                 <ContentContainer>
-                    <AIVisualElement>
-                        <AlbumIcon style={{ fontSize: '50px', color: iMessageColors.textColor }} />
-                    </AIVisualElement>
-                    {!url ? (<PlaceholderContainer>
-                        <Typography variant="h4" gutterBottom>
-                            Ask me anything!
-                        </Typography>
-                        <Typography variant="body1" gutterBottom>
-                            I’m here to generate playlists, visualize data, and answer your questions. Just start typing!
-                        </Typography>
-                        <Tooltip
-                            ref={tooltipRef}
-                            open={tooltipOpen}
-                            title={
-                                <Box>
-                                    <Typography variant="body1" gutterBottom>
-                                        Here are some example questions to get started:
-                                    </Typography>
-                                    <ul>
-                                        <li>Generate a playlist based on mood</li>
-                                        <li>Give me data visualizations on top artists</li>
-                                        <li>Suggest new music based on my preferences</li>
-                                    </ul>
-                                    <Typography variant="body2">
-                                        You can ask anything related to music or playlists. I'm here to help!
-                                    </Typography>
-                                </Box>
-                            }
-                            arrow
-                            placement="top"
-                        >
-
-                        </Tooltip>
-                    </PlaceholderContainer>) :
-                        (<Box>
-                            <h1>{url}</h1>
-                            <SpotifyEmbed url={url}
-                            // CHANGED URL TO THE ACTUAL PLAYIST URL
-                            />
-                        </Box>)
-                    }
+                    {!url && (
+                        <AIVisualElement>
+                            <AlbumIcon style={{ fontSize: '50px', color: iMessageColors.textColor }} />
+                        </AIVisualElement>
+                    )}
+                    {!url ? (
+                        <PlaceholderContainer>
+                            <Typography variant="h4" gutterBottom>
+                                Ask me anything!
+                            </Typography>
+                            <Typography variant="body1" gutterBottom>
+                                I’m here to generate playlists, visualize data, and answer your questions. Just start typing!
+                            </Typography>
+                            <Tooltip
+                                ref={tooltipRef}
+                                open={tooltipOpen}
+                                title={
+                                    <Box>
+                                        <Typography variant="body1" gutterBottom>
+                                            Here are some example questions to get started:
+                                        </Typography>
+                                        <ul>
+                                            <li>Generate a playlist based on mood</li>
+                                            <li>Give me data visualizations on top artists</li>
+                                            <li>Suggest new music based on my preferences</li>
+                                        </ul>
+                                        <Typography variant="body2">
+                                            You can ask anything related to music or playlists. I'm here to help!
+                                        </Typography>
+                                    </Box>
+                                }
+                                arrow
+                                placement="top"
+                            >
+                            </Tooltip>
+                        </PlaceholderContainer>
+                    ) : (
+                        <Box>
+                            <SpotifyEmbed url={url} />
+                        </Box>
+                    )}
                 </ContentContainer>
             </Slide>
+
         </StyledContainer>
     );
 }
