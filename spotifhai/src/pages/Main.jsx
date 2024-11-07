@@ -132,8 +132,8 @@ export default function Main() {
     const handleUrl = async (prompt) => {
         console.log(prompt);
         const response = await getPlaylistUrl({prompt});
-        setUrl(response);
-        localStorage.setItem('playlist_url', response);
+        setUrl(response.response);
+        localStorage.setItem('playlist_url', response.url);
         return response
     };
 

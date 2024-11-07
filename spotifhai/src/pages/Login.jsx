@@ -63,6 +63,8 @@ export default function Login() {
                         const { access_token } = tokenResponse.data;
                         localStorage.setItem('access_token', access_token);
                         fetchUserProfile(access_token);
+                        console.log("Settingg access token to:");
+                        console.log(tokenResponse.data);
                     } catch (e) {
                         console.error('Error fetching access token:', e.response ? e.response.data : e.message);
                     }

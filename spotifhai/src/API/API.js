@@ -4,6 +4,8 @@ import axios from "axios";
 export async function testLogin() { 
     const userId = localStorage.getItem("user_id");
     const accessToken = localStorage.getItem("access_token");
+    console.log(userId);
+    console.log(accessToken);
     try {
         const response = await axios.post('http://localhost:8000/authCheck', {
             userId: userId,
