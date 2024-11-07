@@ -18,7 +18,7 @@ export default function Login() {
 
     const handleLogin = () => {
         const state = generateRandomString(16);
-        const scope = 'user-read-private user-read-email playlist-modify-public playlist-modify-private user-library-modify';
+        const scope = 'user-read-private user-read-email playlist-modify-public playlist-modify-private user-library-modify user-read-recently-played';
         // Added playlist-modify-public, playlist-modify-private, and user-library-modify to scope
         const url = `https://accounts.spotify.com/authorize?${new URLSearchParams({
             response_type: 'code',
