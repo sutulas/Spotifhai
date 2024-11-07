@@ -282,12 +282,8 @@ async def generate_playlists(request: PlaylistRequest):
     return QueryResponse(response=res, url=url)
     
 
-class SecondResponse(BaseModel):
-    response: str
     
 @app.post("/authCheck")
 async def checkAuth(request: PlaylistRequest):
-    res = get_user_uri(request.userId, request.accessToken)
-    print(res)
-    return SecondResponse(response = get_user_uri(request.userId, request.accessToken))
+    return QueryResponse(response = get_user_uri(request.userId, request.accessToken), url="")
     

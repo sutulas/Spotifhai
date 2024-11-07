@@ -6,6 +6,11 @@ const Chatbot = ({ addAIMessage, onUserMessage }) => {
   const [loading, setLoading] = useState(false); // Loading state for AI response
   const chatWindowRef = useRef(null);
 
+  React.useEffect(() => {
+    setMessages([{ id: 0, text: "Hi! I can create any Spotify playlist you'd like!", sender: 'ai' }]);
+  }, []);
+
+
   const handleInputChange = (e) => {
     setInputValue(e.target.value);
   };

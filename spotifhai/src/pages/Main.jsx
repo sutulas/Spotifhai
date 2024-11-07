@@ -131,10 +131,12 @@ export default function Main() {
 
     const handleUrl = async (prompt) => {
         console.log(prompt);
-        const response = await getPlaylistUrl({prompt});
-        setUrl(response.response);
+        const response = await getPlaylistUrl({ prompt });
+        console.log("Response:");
+        console.log(response);
+        setUrl(response.url);
         localStorage.setItem('playlist_url', response.url);
-        return response
+        return response.response;
     };
 
     useEffect(() => {

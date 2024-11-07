@@ -59,7 +59,7 @@ export async function getPlaylistUrl({prompt}) {
         });
         
         console.log(response.data); // Log the response from the API
-        return response.data.response;
+        return response.data;
     } catch (error) {
         console.error('Error fetching data:', error);
     }
