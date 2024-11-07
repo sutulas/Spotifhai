@@ -129,14 +129,15 @@ def generate_playlist_desc(songs_json, query):
     for i,j in enumerate(songs_json['tracks']):
         songs.append(j['name'] + 'by ' +  j['artists'][0]['name'])
     print(songs[0])
-
+    song_s = ", ".join(songs)
     desc_call = client.chat.completions.create(
         model="gpt-4o-mini", 
         messages=[
             {"role": "system", "content": "You are a music expert assistant with a specialty in describing playlists."},
-            {"role": "user", "content": f"Create a description for my playlist about {query}. These are the songs on the playlist: {", ".join(songs)}. Keep the playlist title shorter and relevant to the playlist"}
+            {"role": "user", "content": f"Create a description for my playlist about {query}. These are the songs on the playlist: {song_s}. Keep the playlist title shorter and relevant to the playlist"}
         ]
     )
+    print(desc_call.choices[0].message.content)
     return desc_call.choices[0].message.content
 
 def generate_playlist(user_query, token, user_id):
