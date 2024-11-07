@@ -264,7 +264,7 @@ def generate_playlist(user_query, token, user_id):
                 i += 1
     except Exception as e:
         print(e)
-        return "Errors generating playlist, please try again: " + str(e)
+        return "Errors generating playlist, please try again: " + str(e), "error"
         
 
 
