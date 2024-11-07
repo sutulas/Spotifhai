@@ -133,6 +133,7 @@ export default function Main() {
         console.log(prompt);
         const response = await getPlaylistUrl({prompt});
         setUrl(response);
+        localStorage.setItem('playlist_url', response);
         return response
     };
 
@@ -206,7 +207,8 @@ export default function Main() {
                     </PlaceholderContainer>) :
                         (<Box>
                             <h1>{url}</h1>
-                            <SpotifyEmbed url={"https://open.spotify.com/embed/playlist/3gp01lyf3rjjgNicy220cf?utm_source=generator"}
+                            <SpotifyEmbed url={url}
+                            // CHANGED URL TO THE ACTUAL PLAYIST URL
                             />
                         </Box>)
                     }
