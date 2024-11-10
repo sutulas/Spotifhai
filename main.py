@@ -68,53 +68,7 @@ class SongRecommendationParams(BaseModel):
     target_loudness: float
     target_popularity: float
 
-
-def generate_playlist_params(user_query):
-    all_genres = ["acoustic","afrobeat","alt-rock","alternative","ambient","anime","black-metal","bluegrass","blues",
-        "bossanova","brazil","breakbeat","british","cantopop","chicago-house","children","chill","classical","club","comedy","country","dance","dancehall","death-metal","deep-house","detroit-techno",
-        "disco","disney","drum-and-bass","dub","dubstep","edm","electro","electronic","emo","folk","forro","french","funk","garage","german","gospel","goth","grindcore","groove","grunge",
-        "guitar","happy","hard-rock","hardcore","hardstyle","heavy-metal","hip-hop","holidays","honky-tonk","house","idm","indian","indie","indie-pop","industrial","iranian",
-        "j-dance","j-idol","j-pop","j-rock","jazz","k-pop","kids","latin","latino","malay","mandopop","metal","metal-misc","metalcore","minimal-techno","movies",
-        "mpb","new-age","new-release","opera","pagode","party","philippines-opm","piano","pop","pop-film","post-dubstep","power-pop","progressive-house","psych-rock","punk",
-        "punk-rock","r-n-b","rainy-day","reggae","reggaeton","road-trip","rock","rock-n-roll","rockabilly","romance","sad","salsa","samba","sertanejo","show-tunes","singer-songwriter",
-        "ska","sleep","songwriter","soundtracks","spanish","study","summer","swedish","synth-pop","tango","techno","trance", "trip-hop","turkish","work-out", "world-music"]
-
-    # Construct the prompt
-    prompt = f"""
-    The user wants to create a playlist based on the theme or inspiration: "{user_query}". 
-    Generate values for the following parameters to help them find songs that fit this theme.
-    
-    Parameters to return:
-    - limit: Integer (1-50) representing the number of songs to include in the playlist.
-    - seed_genres: A comma-separated list of genres relevant to the theme from the following list: {all_genres}.
-    - target_danceability: Float (0-1) for how suitable the songs should be for dancing.
-    - target_acousticness: Float (0-1) indicating how acoustic the songs should sound.
-    - target_energy: Float (0-1) for the songs' energy level.
-    - target_instrumentalness: Float (0-1) for how instrumental (non-vocal) the songs should be.
-    - target_liveness: Float (0-1) for how much the songs sound like a live performance.
-    - target_loudness: Float (0-1) for the loudness level of the songs.
-    - target_popularity: Float (0-1) for the songs' popularity.
-    """
-
-    # Make the API call
-    completion = client.beta.chat.completions.parse(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": "You are a music AI bot helping define parameters based on the users query. Define the parameters so the user can get the best recommendations possible"},
-            {"role": "user", "content": prompt}
-        ],
-        response_format=SongRecommendationParams,
-    )
-    print(completion.choices[0].message)
-    params = completion.choices[0].message
-
-    # If the model refuses to respond, you will get a refusal message
-    if (params.refusal):
-        print(params.refusal)
-        return None
-    else:
-        return params.parsed
-    
+  
 def get_user_uri(user_id, token):
     uri_j = requests.get(url = "https://api.spotify.com/v1/me", headers={"Content-Type":"application/json", "Authorization":f"Bearer {token}"})
     uri_r = uri_j.json()["uri"]
@@ -127,147 +81,6 @@ def get_user_uri(user_id, token):
         uri_r = matches[0]
     return(uri_r)
 
-def generate_playlist_desc(songs_json, query):
-    songs = []
-    for i,j in enumerate(songs_json['tracks']):
-        songs.append(j['name'] + 'by ' +  j['artists'][0]['name'])
-    print(songs[0])
-    song_s = ", ".join(songs)
-    desc_call = client.chat.completions.create(
-        model="gpt-4o-mini", 
-        messages=[
-            {"role": "system", "content": "You are a music expert assistant with a specialty in describing playlists."},
-            {"role": "user", "content": f"Create a description for my playlist about {query}. These are the songs on the playlist: {song_s}. Keep the playlist under two sentences and relevant to the playlist"}
-        ]
-    )
-    return desc_call.choices[0].message.content
-
-def generate_playlist(user_query, token, user_id):
-    rec_url = "https://api.spotify.com/v1/recommendations?"
-
-    # We need these two things along with the user query to make the call
-    #token = "FILL_IN_YOUR_TOKEN"
-    #user_id = "FILL_IN_YOUR_USER_ID"
-
-    market="US"
-
-    # Generate Parameters with a loop for success 
-    i = 0
-    try:
-        while i < 3:
-            p = generate_playlist_params(user_query)
-            if p != None:
-                uris = [] 
-                # This may be slightly more complicated because we have to get them from spotify
-                # seed_artists = '0XNa1vTidXlvJ2gHSsRi4A'
-                # seed_tracks='55SfSsxneljXOk5S3NVZIW'
-
-                p.seed_genres = p.seed_genres[:3]
-                # Restricted to 3 genres for now, seems like more than 3 or 4 causes and error
-
-                # PERFORM THE QUERY -
-                songs_query = f'{rec_url}limit={p.limit}&market={market}&seed_genres={",".join(p.seed_genres)}'
-                songs_query += f'&target_danceability={p.target_danceability}'
-                songs_query += f'&target_acousticness={p.target_acousticness}'
-                songs_query += f'&target_energy={p.target_energy}'
-                songs_query += f'&target_instrumentalness={p.target_instrumentalness}'
-                songs_query += f'&target_liveness={p.target_liveness}'
-                songs_query += f'&target_loudness={p.target_loudness}'
-                # songs_query += f'&target_popularity={p.target_popularity}'
-                #songs_query += f'&seed_artists={seed_artists}'
-                # songs_query += f'&seed_tracks={seed_tracks}'
-                
-                artist_llm = client.chat.completions.create(
-                    model="gpt-4o-mini", 
-                    messages=[
-                        {"role": "system", "content": "You are a music expert assistant."},
-                        {"role": "user", "content": f"I want to create a playlist around this idea: '{user_query}'. What is the one artist that best fits this theme? Only respond with the title of the artist"}
-                    ],
-                    max_tokens=50  # Limit tokens since only one artist is needed
-                )
-
-                # Extract and return the artist's name from the response
-                artist = artist_llm.choices[0].message.content
-                print(artist)
-
-                # Get artist id for seeding
-                artist_url = f'https://api.spotify.com/v1/search?q={artist}&type=artist&limit=1'
-                artist_response = requests.get(url = artist_url, headers={"Content-Type":"application/json", 
-                                        "Authorization":f"Bearer {token}"})
-                artist_response = json.loads(artist_response.text)
-            #   print(artist_response)
-                artist_id = artist_response['artists']['items'][0]['uri']
-              
-                artist_id = re.match(r'spotify:artist:(\S+)', artist_id).group(1)
-                songs_query += f'&seed_artists={artist_id}'
-
-                print("songs_query")
-                # songs_query = re.sub(r'%2C', ',', songs_query)
-                # songs_query = re.sub(r'singer-songwriter', '', songs_query)
-                # songs_query = re.sub(r',,', ',', songs_query)
-                print(songs_query)
-                songs_response = requests.get(songs_query, 
-                            headers={"Content-Type":"application/json", 
-                                        "Authorization":f"Bearer {token}"})
-                print(songs_response.text)
-                songs_json = songs_response.json()
-
-                print('Recommended Songs:')
-                for i,j in enumerate(songs_json['tracks']):
-                    uris.append(j['uri'])
-                    print(f"{i+1}) \"{j['name']}\" by {j['artists'][0]['name']}")
-                ### CREATE A PLAYLIST
-                uri = get_user_uri(user_id, token)
-                playlist_url = f"https://api.spotify.com/v1/users/{uri}/playlists"
-                
-                # These should also be automatically generated
-                playlist_title = user_query + " - By SpotifHAI"
-
-                # Generate playlist desc
-                playlist_desc = generate_playlist_desc(songs_json, user_query)
-                print(playlist_desc)
-                request_body = json.dumps({
-                        "name": playlist_title,
-                        "description": "Description and songs generated by SpotifHAI",
-                        "public": False
-                        })
-                playlist_response = requests.post(url = playlist_url, data = request_body, headers={"Content-Type":"application/json", 
-                                        "Authorization":f"Bearer {token}"})
-                print('url: ',playlist_url)
-                print(request_body)
-
-                print(playlist_response.json())
-
-                print("playlist_response")
-                print(playlist_response)
-                url = playlist_response.json()['external_urls']['spotify']
-                
-                print(playlist_response.status_code)
-
-
-                ### FILL THE NEW PLAYLIST WITH THE RECOMMENDATIONS
-
-                playlist_id = playlist_response.json()['id']
-
-                add_songs_url = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
-
-                add_songs_request_body = json.dumps({
-                        "uris" : uris
-                        })
-                add_songs_response = requests.post(url = add_songs_url, data = add_songs_request_body, headers={"Content-Type":"application/json", 
-                                        "Authorization":f"Bearer {token}"})
-
-                print(add_songs_response.status_code)    
-                url = re.sub(r'(spotify\.com/)', r'\1embed/', url) 
-                # Adding \embed to the url to make it an embed link
-                return playlist_desc, url
-            else:
-                print("Error generating parameters")
-                i += 1
-    except Exception as e:
-        print(e)
-        return "Errors generating playlist, please try again: " + str(e), "error"
-        
 def create_playlist(title):
     uri = get_user_uri(user_id, auth_token)
     playlist_url = f"https://api.spotify.com/v1/users/{uri}/playlists"
@@ -290,8 +103,8 @@ def create_playlist(title):
 def get_uris(songs):
     uris = []
     for song in songs:
-        song_name = song.split(" by ")[0]
-        song_artist = song.split(" by ")[1]
+        song_name = song.split(" - ")[0]
+        song_artist = song.split(" - ")[1]
         search_url = f"https://api.spotify.com/v1/search?q={song_name}+{song_artist}&type=track&limit=1"
         search_response = requests.get(url = search_url, headers={"Content-Type":"application/json", 
                             "Authorization":f"Bearer {auth_token}"})
@@ -299,8 +112,33 @@ def get_uris(songs):
         uris.append(uri)
     return uris
 
+def gpt_songs(prompt, length, data):
+    songs = []
+    if data:
+        additional_info = f"Use this additional information: {data}"
+    else:
+        additional_info = ""
+    message = f'''
+    I want to create a playlist around this idea: '{prompt}'. What are the songs that best fit this theme? Give {length} songs. Only respond with the title of the songs and the artist.
+    Respond exactly in this format: "Song Title - Artist, Song Title - Artist, Song Title - Artist"
 
-def gpt_playlist(title, songs):
+    {additional_info}
+
+    '''
+    song_call = client.chat.completions.create(
+        model="gpt-4o-mini", 
+        messages=[
+            {"role": "system", "content": "You are a music expert assistant."},
+            {"role": "user", "content":  message}
+        ]
+    )
+    print(song_call.choices[0].message.content)
+    songs = song_call.choices[0].message.content.split(", ")
+    return songs
+
+def gpt_playlist(prompt, title, length = 20, data = None):
+    songs = gpt_songs(prompt, length, data)
+
     playlist_url, playlist_id = create_playlist(title)
 
     add_songs_url = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
@@ -314,20 +152,16 @@ def gpt_playlist(title, songs):
         "Authorization":f"Bearer {auth_token}"})
     print(add_songs_response.status_code)    
     url = re.sub(r'(spotify\.com/)', r'\1embed/', playlist_url)
-    
+
     return url
 
-
-    
-
-
-
-
-def get_recently_listened(token):
+def get_recently_listened():
+    token = auth_token
     # Convert to milliseconds
     ctime = str(round(time.time() * 1000))
     url = 'https://api.spotify.com/v1/me/player/recently-played?limit=15&before=' + ctime
     rec_list = requests.get(url = url, headers={"Content-Type":"application/json", "Authorization":f"Bearer {token}"})
+    
     print("Rec list")
     rec_played = []
     for item in rec_list.json()['items']:
@@ -337,19 +171,20 @@ def get_recently_listened(token):
     print(list(set(rec_played)))
     return list(set(rec_played))
 
-def get_top_artists(token, time_range = 'medium_term'):
+def get_top_artists(time_range = 'medium_term'):
     url = 'https://api.spotify.com/v1/me/top/artists?time_range=' + time_range
-    artists_list = requests.get(url = url, headers={"Content-Type":"application/json", "Authorization":f"Bearer {token}"})
+    artists_list = requests.get(url = url, headers={"Content-Type":"application/json", "Authorization":f"Bearer {auth_token}"})
     print("Artists list")
     artists = []
+    print(artists_list.json())
     for artist in artists_list.json()['items']:
         artists.append(artist['name'])
     print(artists)
     return artists
 
-def get_top_tracks(token, time_range = 'medium_term'):
+def get_top_tracks(time_range = 'medium_term'):
     url = 'https://api.spotify.com/v1/me/top/tracks?time_range=' + time_range
-    tracks_list = requests.get(url = url, headers={"Content-Type":"application/json", "Authorization":f"Bearer {token}"})
+    tracks_list = requests.get(url = url, headers={"Content-Type":"application/json", "Authorization":f"Bearer {auth_token}"})
     print("Tracks list")
     tracks = []
     for track in tracks_list.json()['items']:
@@ -357,60 +192,102 @@ def get_top_tracks(token, time_range = 'medium_term'):
     print(tracks)
     return tracks
 
-
 class PlaylistRequest(BaseModel):
     userId: str
     userPrompt: str
     accessToken: str
 
-def playlist_generation_tool(prompt):
-    res, url = generate_playlist(prompt, auth_token, user_id)
-    return res, url
-
-playlist_generation = {
+get_top_tracks_tool = {
   "type": "function",
   "function": {
-      "name": "playlist_generation_tool",
-            "description": "Creates a playlist based on the user's query. Call this whenever you want to generate a playlist, for example: 'create a playlist for a party'.",
+      "name": "get_top_tracks",
+            "description": "Get the top tracks of the user",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "prompt": {
+                    "time_range": {
                         "type": "string",
-                        "description": "The prompt for the playlist",
+                        "description": "The time range for the top tracks long_term (calculated from ~1 year of data and including all new data as it becomes available), medium_term (approximately last 6 months), short_term (approximately last 4 weeks)",
                     }
                 },
-                "required": ["prompt"],
+                "required": ["time_range"],
                 "additionalProperties": False,
             },
   }
 }
 
-data_response = {
+get_top_artists_tool = {
   "type": "function",
   "function": {
-      "name": "data_response",
-            "description": "Responds with the data requested by the user. Call this whenever you want to get a response to a data query.",
+      "name": "get_top_artists",
+            "description": "Get the top artists of the user",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "data": {
+                    "time_range": {
                         "type": "string",
-                        "description": "The exact data requested by the user",
+                        "description": "The time range for the top artists long_term (calculated from ~1 year of data and including all new data as it becomes available), medium_term (approximately last 6 months), short_term (approximately last 4 weeks)",
                     }
                 },
-                "required": ["prompt"],
+                "required": ["time_range"],
                 "additionalProperties": False,
             },
   }
 }
+
+get_recently_listened_tool = {
+    "type": "function",
+    "function": {
+        "name": "get_recently_listened",
+                "description": "Get the recently listened songs of the user",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                    },
+                    "additionalProperties": False,
+                },
+    }
+    }
+
+gpt_playlist_tool = {
+    "type": "function",
+    "function": {
+        "name": "gpt_playlist",
+                "description": "Create a playlist with the songs provided, only call if gp_songs is called",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "prompt": {
+                            "type": "string",
+                            "description": "The prompt for the playlist",
+                        },
+                        "title": {
+                            "type": "string",
+                            "description": "The title of the playlist",
+                        },
+                        "length": {
+                            "type": "integer",
+                            "description": "The number of songs in the playlist",
+                        },
+                        "data": {
+                            "type": "string",
+                            "description": "Supplemental Data (label if it is from get_top_tracks or get_top_artists or get_recently_listened)",
+                        }
+                    },
+                    "required": ["prompt", "title"],
+                    "additionalProperties": False,
+                },
+    }
+    }
 
 
 ### Define Tools ###
-tools = [playlist_generation, data_response]
+tools = [get_top_tracks_tool, get_top_artists_tool, get_recently_listened_tool, gpt_playlist_tool]
 tool_map = {
-    "playlist_generation_tool": playlist_generation_tool,
-    "data_response": data_response_tool
+    "get_top_tracks": get_top_tracks,
+    "get_top_artists": get_top_artists,
+    "get_recently_listened": get_recently_listened,
+    "gpt_playlist": gpt_playlist
 }
 
 
@@ -418,7 +295,9 @@ tool_map = {
 def query(question, system_prompt, max_iterations=10):
     messages = [{"role": "system", "content": system_prompt}]
     messages.append({"role": "user", "content": question})
+    url = ''
     i = 0
+    data = ""
     while i < max_iterations:
         i += 1
         print("iteration:", i)
@@ -439,10 +318,12 @@ def query(question, system_prompt, max_iterations=10):
         for tool_call in response.choices[0].message.tool_calls:
             print("calling:", tool_call.function.name, "with", tool_call.function.arguments)
             # call the function
+            
             arguments = json.loads(tool_call.function.arguments)
             function_to_call = tool_map[tool_call.function.name]
             result = function_to_call(**arguments)
-
+            if tool_call.function.name == "gpt_playlist":
+                url = result
             # create a message containing the result of the function call
             result_content = json.dumps({**arguments, "result": result})
             function_call_result_message = { 
@@ -455,7 +336,7 @@ def query(question, system_prompt, max_iterations=10):
             print("Max iterations reached")
             return "The tool agent could not complete the task in the given time. Please try again."
     print("final response:", response.choices[0].message.content)
-    return response.choices[0].message.content
+    return response.choices[0].message.content, url
 
 
 @app.post("/generatePlaylists")
@@ -486,6 +367,8 @@ async def checkAuth(request: PlaylistRequest):
 
 @app.post("/recentlyListened")
 async def recentlyListened(request: PlaylistRequest):
-    res = get_recently_listened(request.accessToken)
+    global auth_token
+    auth_token = request.accessToken
+    res = get_recently_listened()
     return SecondResponse(response = "Recently Listened Songs:     " + " ------- ".join(res))
     
