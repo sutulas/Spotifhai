@@ -1,15 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 const Chatbot = ({ addAIMessage, onUserMessage }) => {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
-  const [loading, setLoading] = useState(false); // Loading state for AI response
+  const [loading, setLoading] = useState(false);
   const chatWindowRef = useRef(null);
 
   React.useEffect(() => {
-    setMessages([{ id: 0, text: "Hi " + localStorage.getItem("name") + "!" +  " I can create any Spotify playlist you'd like!", sender: 'ai' }]);
+    setMessages([{ id: 0, text: "Hi " + localStorage.getItem("name") + "!" + " I can create any Spotify playlist you'd like!", sender: 'ai' }]);
   }, []);
-
 
   const handleInputChange = (e) => {
     setInputValue(e.target.value);
@@ -27,10 +28,10 @@ const Chatbot = ({ addAIMessage, onUserMessage }) => {
     setMessages((prevMessages) => [...prevMessages, userMessage]);
     onUserMessage(inputValue);
     setInputValue('');
-    setLoading(true); // Set loading to true while waiting for AI response
+    setLoading(true);
 
     const aiMessageText = await addAIMessage(inputValue);
-    setLoading(false); // Turn off loading after receiving AI response
+    setLoading(false);
 
     if (aiMessageText) {
       const newAIMessage = {
@@ -53,7 +54,7 @@ const Chatbot = ({ addAIMessage, onUserMessage }) => {
     if (chatWindowRef.current) {
       chatWindowRef.current.scrollTop = chatWindowRef.current.scrollHeight;
     }
-  }, [messages, loading]); // Trigger scroll when messages or loading changes
+  }, [messages, loading]);
 
   return (
     <div
@@ -95,7 +96,13 @@ const Chatbot = ({ addAIMessage, onUserMessage }) => {
               whiteSpace: 'pre-wrap',
             }}
           >
-            {msg.text}
+            {msg.sender === 'ai' ? (
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {msg.text}
+              </ReactMarkdown>
+            ) : (
+              msg.text
+            )}
           </div>
         ))}
         {loading && (

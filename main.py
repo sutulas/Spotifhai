@@ -102,6 +102,7 @@ def create_playlist(title):
 
 def get_uris(songs):
     uris = []
+    print(songs)
     for song in songs:
         song_name = song.split(" - ")[0]
         song_artist = song.split(" - ")[1]
@@ -114,17 +115,19 @@ def get_uris(songs):
 
 def gpt_songs(prompt, length, data):
     songs = []
-    if data:
+    if len(data) > 1:
         additional_info = f"Use this additional information: {data}"
     else:
         additional_info = ""
     message = f'''
-    I want to create a playlist around this idea: '{prompt}'. What are the songs that best fit this theme? Give {length} songs. Only respond with the title of the songs and the artist.
+    I want to create a playlist around this idea: '{prompt}'.  What are the songs that best fit this theme? Give {length} songs. Only respond with the title of the songs and the artist.
     Respond exactly in this format: "Song Title - Artist, Song Title - Artist, Song Title - Artist"
 
     {additional_info}
 
     '''
+
+    print(message)
     song_call = client.chat.completions.create(
         model="gpt-4o-mini", 
         messages=[
@@ -137,7 +140,19 @@ def gpt_songs(prompt, length, data):
     return songs
 
 def gpt_playlist(prompt, title, length = 20, data = None):
-    songs = gpt_songs(prompt, length, data)
+    additional_info = ""
+    if "get_top_tracks" in data:
+        additional_info += f"Top tracks: {get_top_tracks()}"
+        
+    if "get_top_artists" in data:
+        additional_info += f"Top artists: {get_top_artists()}"
+        
+    if "get_recently_listened":
+        additional_info += f"Recently listened: {get_recently_listened()}"
+
+
+    songs = gpt_songs(prompt, length, additional_info)
+    # get data here?
 
     playlist_url, playlist_id = create_playlist(title)
 
@@ -167,7 +182,7 @@ def get_recently_listened():
     for item in rec_list.json()['items']:
         track_name = item['track']['name']
         artists = [artist['name'] for artist in item['track']['artists']]
-        rec_played.append(track_name + " by " + ', '.join(artists))
+        rec_played.append(track_name + " - " + ', '.join(artists))
     print(list(set(rec_played)))
     return list(set(rec_played))
 
@@ -188,7 +203,7 @@ def get_top_tracks(time_range = 'medium_term'):
     print("Tracks list")
     tracks = []
     for track in tracks_list.json()['items']:
-        tracks.append(track['name'] + " by " + ', '.join([artist['name'] for artist in track['artists']]))
+        tracks.append(track['name'] + " - " + ', '.join([artist['name'] for artist in track['artists']]))
     print(tracks)
     return tracks
 
@@ -271,7 +286,7 @@ gpt_playlist_tool = {
                         },
                         "data": {
                             "type": "string",
-                            "description": "Supplemental Data (label if it is from get_top_tracks or get_top_artists or get_recently_listened)",
+                            "description": "Supplemental Data to get (get_top_tracks, get_top_artists, and/or get_recently_listened)",
                         }
                     },
                     "required": ["prompt", "title"],
