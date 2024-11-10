@@ -102,7 +102,6 @@ def create_playlist(title):
 
 def get_uris(songs):
     uris = []
-    print(songs)
     for song in songs:
         song_name = song.split(" - ")[0]
         song_artist = song.split(" - ")[1]
@@ -127,7 +126,6 @@ def gpt_songs(prompt, length, data):
 
     '''
 
-    print(message)
     song_call = client.chat.completions.create(
         model="gpt-4o-mini", 
         messages=[
@@ -183,7 +181,6 @@ def get_recently_listened():
         track_name = item['track']['name']
         artists = [artist['name'] for artist in item['track']['artists']]
         rec_played.append(track_name + " - " + ', '.join(artists))
-    print(list(set(rec_played)))
     return list(set(rec_played))
 
 def get_top_artists(time_range = 'medium_term'):
@@ -191,7 +188,6 @@ def get_top_artists(time_range = 'medium_term'):
     artists_list = requests.get(url = url, headers={"Content-Type":"application/json", "Authorization":f"Bearer {auth_token}"})
     print("Artists list")
     artists = []
-    print(artists_list.json())
     for artist in artists_list.json()['items']:
         artists.append(artist['name'])
     print(artists)
