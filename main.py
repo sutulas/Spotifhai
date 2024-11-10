@@ -172,7 +172,7 @@ def get_recently_listened():
     return list(set(rec_played))
 
 def get_top_artists(time_range = 'medium_term'):
-    url = 'https://api.spotify.com/v1/me/top/artists?time_range=' + time_range
+    url = 'https://api.spotify.com/v1/me/top/artists?limit=50&time_range=' + time_range
     artists_list = requests.get(url = url, headers={"Content-Type":"application/json", "Authorization":f"Bearer {auth_token}"})
     print("Artists list")
     artists = []
@@ -183,7 +183,7 @@ def get_top_artists(time_range = 'medium_term'):
     return artists
 
 def get_top_tracks(time_range = 'medium_term'):
-    url = 'https://api.spotify.com/v1/me/top/tracks?time_range=' + time_range
+    url = 'https://api.spotify.com/v1/me/top/tracks?limit=50&time_range=' + time_range
     tracks_list = requests.get(url = url, headers={"Content-Type":"application/json", "Authorization":f"Bearer {auth_token}"})
     print("Tracks list")
     tracks = []
