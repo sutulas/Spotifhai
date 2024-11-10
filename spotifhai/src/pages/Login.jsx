@@ -11,7 +11,9 @@ import { styled } from '@mui/system';
 export default function Login() {
     const client_id = 'b5762987908e419296e653bb96ad9f45'; // Your client ID
     const client_secret = 'fd6489e6fcec424bb7e0845cace3d8b8'; // Your client secret
-    const redirect_uri = 'http://sutulas.github.io/Spotifhai/#/callback'; // Your redirect URI
+    // const redirect_uri = 'http://sutulas.github.io/Spotifhai/#/callback'; // Your redirect URI
+    const redirect_uri = process.env.NODE_ENV === 'production' ? 'http://sutulas.github.io/Spotifhai/#/callback' : 'http://localhost:3000/#/callback';
+
     //const redirect_uri = 'http://localhost:3000/#/callback'; // Your redirect URI
 
     const [profile, setProfile] = useState(null);

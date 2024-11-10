@@ -285,6 +285,110 @@ class PlaylistRequest(BaseModel):
     userPrompt: str
     accessToken: str
 
+
+playlist_generation = {
+  "type": "function",
+  "function": {
+      "name": "playlist_generation_tool",
+            "description": "Creates a playlist based on the user's query. Call this whenever you want to generate a playlist, for example: 'create a playlist for a party'.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "prompt": {
+                        "type": "string",
+                        "description": "The prompt for the playlist",
+                    }
+                },
+                "required": ["prompt"],
+                "additionalProperties": False,
+            },
+  }
+}
+
+data_response = {
+  "type": "function",
+  "function": {
+      "name": "data_response",
+            "description": "Responds with the data requested by the user. Call this whenever you want to get a response to a data query.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "data": {
+                        "type": "string",
+                        "description": "The exact data requested by the user",
+                    }
+                },
+                "required": ["prompt"],
+                "additionalProperties": False,
+            },
+  }
+}
+
+### Define Tools ###
+tools = [playlist_generation, data_response]
+tool_map = {
+    "playlist_generation_tool": playlist_generation_tool,
+    "data_response": data_response_tool
+}
+
+
+### Query Function ###
+def query(question, system_prompt, max_iterations=10):
+    global chart
+    global chart_description
+    # print("dd",pd.read_csv('static/uploads/cars-w-year.csv').head())
+    messages = [{"role": "system", "content": system_prompt}]
+    messages.append({"role": "user", "content": question})
+    i = 0
+    while i < max_iterations:
+        i += 1
+        print("iteration:", i)
+        response = client.chat.completions.create(
+            model="gpt-4o-mini", temperature=0.0, messages=messages, tools=tools
+        )
+        # print(response.choices[0].message)
+        if response.choices[0].message.content != None:
+            print(response.choices[0].message.content)
+        # print(response.choices[0].message)
+
+        # if not function call
+        if response.choices[0].message.tool_calls == None:
+            break
+
+        # if function call
+        messages.append(response.choices[0].message)
+        for tool_call in response.choices[0].message.tool_calls:
+            print("calling:", tool_call.function.name, "with", tool_call.function.arguments)
+            # call the function
+            arguments = json.loads(tool_call.function.arguments)
+            function_to_call = tool_map[tool_call.function.name]
+            result = function_to_call(**arguments)
+
+            if tool_call.function.name == "data_visualization_tool":
+              chart = result[0]
+              chart_description = result[1]
+              function_call_result_message = {
+                  "role": "tool",
+                  "content": result[1],
+                  "tool_call_id": tool_call.id,
+              }
+            else:
+              # create a message containing the result of the function call
+              result_content = json.dumps({**arguments, "result": result})
+              function_call_result_message = { 
+                  "role": "tool",
+                  "content": result_content,
+                  "tool_call_id": tool_call.id,
+              }
+
+            messages.append(function_call_result_message)
+        if i == max_iterations and response.choices[0].message.tool_calls != None:
+            print("Max iterations reached")
+            return "The tool agent could not complete the task in the given time. Please try again."
+    print("final response:", response.choices[0].message.content)
+    return response.choices[0].message.content
+
+
 @app.post("/generatePlaylists")
 async def generate_playlists(request: PlaylistRequest):
     print(request.userPrompt)

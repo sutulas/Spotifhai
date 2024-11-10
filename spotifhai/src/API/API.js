@@ -1,5 +1,6 @@
 import axios from "axios";
-const url = 'https://spotifhai.onrender.com/';
+// const url = 'https://spotifhai.onrender.com/';
+const url =  process.env.NODE_ENV === 'production' ? 'https://spotifhai.onrender.com/' : 'http://localhost:8000/';
 //const url = 'http://localhost:8000/';
  
 export async function getRecentlyListened() { 
