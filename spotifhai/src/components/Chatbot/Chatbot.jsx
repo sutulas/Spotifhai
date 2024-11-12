@@ -9,7 +9,7 @@ const Chatbot = ({ addAIMessage, onUserMessage }) => {
   const chatWindowRef = useRef(null);
 
   React.useEffect(() => {
-    setMessages([{ id: 0, text: "Hi " + localStorage.getItem("name") + "!" + " I can create any Spotify playlist you'd like!", sender: 'ai' }]);
+    setMessages([{ id: 0, text: "Hi " + localStorage.getItem("name") + "!" + " I can create any Spotify playlist you'd like, reccomend songs, and answer questions based on your recent history, top songs, and top artists!", sender: 'ai' }]);
   }, []);
 
   const handleInputChange = (e) => {
@@ -119,7 +119,7 @@ const Chatbot = ({ addAIMessage, onUserMessage }) => {
               fontStyle: 'italic',
             }}
           >
-            Typing<span className="dot-animation">...</span>
+            Jamming<span className="dot-animation">...</span>
           </div>
         )}
       </div>

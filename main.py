@@ -56,7 +56,6 @@ async def read_root():
     return QueryResponse(response=f"id: {user_id}, token: {auth_token}")
 
 
-
 class SongRecommendationParams(BaseModel):
     limit: int
     seed_genres: list[str]
@@ -103,6 +102,9 @@ def create_playlist(title):
 def get_uris(songs):
     uris = []
     for song in songs:
+        print(song)
+        if " - " not in song:
+            continue
         song_name = song.split(" - ")[0]
         song_artist = song.split(" - ")[1]
         search_url = f"https://api.spotify.com/v1/search?q={song_name}+{song_artist}&type=track&limit=1"
@@ -119,11 +121,15 @@ def gpt_songs(prompt, length, data):
     else:
         additional_info = ""
     message = f'''
-    I want to create a playlist around this idea: '{prompt}'.  What are the songs that best fit this theme? Give {length} songs. Only respond with the title of the songs and the artist.
+    I want to create a playlist around this idea: '{prompt}'. What are the songs that best fit this theme? 
+    Be Creative! Help the user to discover new music.
+    Give {length} songs. 
+    Only respond with the title of the songs and the artist.
     Respond exactly in this format: "Song Title - Artist, Song Title - Artist, Song Title - Artist"
 
     {additional_info}
 
+    DO NOT SIMPLY COPY THE PROVIDED SONGS. BE CREATIVE AND PROVIDE NEW SONGS.
     '''
 
     song_call = client.chat.completions.create(
@@ -133,24 +139,41 @@ def gpt_songs(prompt, length, data):
             {"role": "user", "content":  message}
         ]
     )
+
+    message = f'''
+    ensure that the following list matches this format: "Song Title - Artist, Song Title - Artist, Song Title - Artist"
+
+    here is the list: {song_call.choices[0].message.content}
+
+    only return the songs in the format: "Song Title - Artist, Song Title - Artist, Song Title - Artist"
+    remove ones that fail.
+    '''
+    song_call = client.chat.completions.create(
+        model="gpt-4o-mini", 
+        messages=[
+            {"role": "system", "content": "You are a music expert assistant."},
+            {"role": "user", "content":  message}
+        ]
+    )
+
     print(song_call.choices[0].message.content)
     songs = song_call.choices[0].message.content.split(", ")
     return songs
 
 def gpt_playlist(prompt, title, length = 20, data = None):
     additional_info = ""
-    if "get_top_tracks" in data:
-        additional_info += f"Top tracks: {get_top_tracks()}"
-        
-    if "get_top_artists" in data:
-        additional_info += f"Top artists: {get_top_artists()}"
-        
-    if "get_recently_listened":
-        additional_info += f"Recently listened: {get_recently_listened()}"
+    if data != None:
+        if "get_top_tracks" in data:
+            additional_info += f"Top tracks: {get_top_tracks()}"
+            
+        if "get_top_artists" in data:
+            additional_info += f"Top artists: {get_top_artists()}"
+            
+        if "get_recently_listened":
+            additional_info += f"Recently listened: {get_recently_listened()}"
 
 
     songs = gpt_songs(prompt, length, additional_info)
-    # get data here?
 
     playlist_url, playlist_id = create_playlist(title)
 
@@ -264,7 +287,7 @@ gpt_playlist_tool = {
     "type": "function",
     "function": {
         "name": "gpt_playlist",
-                "description": "Create a playlist with the songs provided, only call if gp_songs is called",
+                "description": "Create a playlist with the prompt provided",
                 "parameters": {
                     "type": "object",
                     "properties": {
@@ -291,14 +314,41 @@ gpt_playlist_tool = {
     }
     }
 
+gpt_song_tool = {
+    "type": "function",
+    "function": {
+        "name": "gpt_songs",
+                "description": "Recommend songs based on the provided input",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "prompt": {
+                            "type": "string",
+                            "description": "The prompt for the playlist",
+                        },
+                        "length": {
+                            "type": "integer",
+                            "description": "The number of songs in the playlist",
+                        },
+                        "data": {
+                            "type": "string",
+                            "description": "Supplemental Data for the playlist (recently listened, top tracks, and/or top artists)",
+                        }
+                    },
+                    "required": ["prompt", "length", "data"],
+                    "additionalProperties": False,
+                },
+    }
+    }
 
 ### Define Tools ###
-tools = [get_top_tracks_tool, get_top_artists_tool, get_recently_listened_tool, gpt_playlist_tool]
+tools = [get_top_tracks_tool, get_top_artists_tool, get_recently_listened_tool, gpt_playlist_tool, gpt_song_tool]
 tool_map = {
     "get_top_tracks": get_top_tracks,
     "get_top_artists": get_top_artists,
     "get_recently_listened": get_recently_listened,
-    "gpt_playlist": gpt_playlist
+    "gpt_playlist": gpt_playlist,
+    "gpt_songs": gpt_songs
 }
 
 
@@ -359,7 +409,7 @@ async def generate_playlists(request: PlaylistRequest):
     print(request.userPrompt)
     print(request.accessToken)
     print('id', request.userId)
-    system_prompt = "You are a music AI bot helping the user anser their query. You have access to the Spotify API to generate playlists based on the user's query. Use the tools to help you answer the user's query."
+    system_prompt = "You are a music AI bot helping the user anser their query. You have access to the Spotify API to generate playlists or get stats based on the user's query. Only make playlist if asked. Use the tools to help you answer the user's query."
     res, url = query(request.userPrompt, system_prompt)
     #res, url = generate_playlist(request.userPrompt, request.accessToken, request.userId)
     #get_recently_listened(request.accessToken)
