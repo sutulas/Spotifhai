@@ -17,9 +17,10 @@ import time
 # Load environment variables from .env file
 load_dotenv()
 
+conversation = ""
 auth_token = ""
 user_id = ""
-
+data = ""
 app = FastAPI()
 
 # Configure CORS
@@ -160,18 +161,10 @@ def gpt_songs(prompt, length, data):
     songs = song_call.choices[0].message.content.split(", ")
     return songs
 
-def gpt_playlist(prompt, title, length = 20, data = None):
+def gpt_playlist(prompt, title, length = 20, additional_data = None):
     additional_info = ""
-    if data != None:
-        if "get_top_tracks" in data:
-            additional_info += f"Top tracks: {get_top_tracks()}"
-            
-        if "get_top_artists" in data:
-            additional_info += f"Top artists: {get_top_artists()}"
-            
-        if "get_recently_listened":
-            additional_info += f"Recently listened: {get_recently_listened()}"
-
+    if additional_data != None:
+        additional_info += data
 
     songs = gpt_songs(prompt, length, additional_info)
 
@@ -192,6 +185,7 @@ def gpt_playlist(prompt, title, length = 20, data = None):
     return url
 
 def get_recently_listened():
+    global data
     token = auth_token
     # Convert to milliseconds
     ctime = str(round(time.time() * 1000))
@@ -204,9 +198,11 @@ def get_recently_listened():
         track_name = item['track']['name']
         artists = [artist['name'] for artist in item['track']['artists']]
         rec_played.append(track_name + " - " + ', '.join(artists))
+    data += f"Recently played: {rec_played}"
     return list(set(rec_played))
 
 def get_top_artists(time_range = 'medium_term'):
+    global data
     url = 'https://api.spotify.com/v1/me/top/artists?limit=50&time_range=' + time_range
     artists_list = requests.get(url = url, headers={"Content-Type":"application/json", "Authorization":f"Bearer {auth_token}"})
     print("Artists list")
@@ -214,9 +210,11 @@ def get_top_artists(time_range = 'medium_term'):
     for artist in artists_list.json()['items']:
         artists.append(artist['name'])
     print(artists)
+    data += f"Top artists: {artists}"
     return artists
 
 def get_top_tracks(time_range = 'medium_term'):
+    global data
     url = 'https://api.spotify.com/v1/me/top/tracks?limit=50&time_range=' + time_range
     tracks_list = requests.get(url = url, headers={"Content-Type":"application/json", "Authorization":f"Bearer {auth_token}"})
     print("Tracks list")
@@ -224,7 +222,12 @@ def get_top_tracks(time_range = 'medium_term'):
     for track in tracks_list.json()['items']:
         tracks.append(track['name'] + " - " + ', '.join([artist['name'] for artist in track['artists']]))
     print(tracks)
+    data += f"Top Tracks: {tracks}"
     return tracks
+
+def get_conversation():
+    return conversation
+
 
 class PlaylistRequest(BaseModel):
     userId: str
@@ -303,7 +306,7 @@ gpt_playlist_tool = {
                             "type": "integer",
                             "description": "The number of songs in the playlist",
                         },
-                        "data": {
+                        "additional_data": {
                             "type": "string",
                             "description": "Supplemental Data to get (get_top_tracks, get_top_artists, and/or get_recently_listened)",
                         }
@@ -341,24 +344,40 @@ gpt_song_tool = {
     }
     }
 
+conversation_tool = {
+    "type": "function",
+    "function": {
+        "name": "get_conversation",
+                "description": "Get the conversation history",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                    },
+                    "additionalProperties": False,
+                },
+    }
+}
+
 ### Define Tools ###
-tools = [get_top_tracks_tool, get_top_artists_tool, get_recently_listened_tool, gpt_playlist_tool, gpt_song_tool]
+tools = [get_top_tracks_tool, get_top_artists_tool, get_recently_listened_tool, gpt_playlist_tool, gpt_song_tool, conversation_tool]
 tool_map = {
     "get_top_tracks": get_top_tracks,
     "get_top_artists": get_top_artists,
     "get_recently_listened": get_recently_listened,
     "gpt_playlist": gpt_playlist,
-    "gpt_songs": gpt_songs
+    "gpt_songs": gpt_songs,
+    "get_conversation": get_conversation
 }
 
 
 ### Query Function ###
 def query(question, system_prompt, max_iterations=10):
+    global data
+    data = ""
     messages = [{"role": "system", "content": system_prompt}]
     messages.append({"role": "user", "content": question})
     url = ''
     i = 0
-    data = ""
     while i < max_iterations:
         i += 1
         print("iteration:", i)
@@ -399,23 +418,45 @@ def query(question, system_prompt, max_iterations=10):
     print("final response:", response.choices[0].message.content)
     return response.choices[0].message.content, url
 
+def question_check(question):
+    prompt = f'''
+    Determine whether the following question is appropriate:
+    "{question}"
+
+    Acceptable question include: "What can you do?", "Can you generate a playlist for me?", "Can you provide me with some song recommendations?", "Can you provide me with some stats on my music listening habits?" 
+    and any similar questions or questions about listening history or top artists or top tracks.
+
+    Only say no to inappropriate questions.
+
+    Respond with "Yes" or "No"
+    '''
+    messages = [{"role": "system", "content": "You are a music AI bot helping the user anser their query."}]
+    messages.append({"role": "user", "content": prompt})
+    response = client.chat.completions.create(
+        model="gpt-4o-mini", temperature=0.0, messages= messages
+    )
+    return response.choices[0].message.content.lower()
 
 @app.post("/generatePlaylists")
 async def generate_playlists(request: PlaylistRequest):
     global auth_token
     global user_id
+    global conversation
     auth_token = request.accessToken
     user_id = request.userId
     print(request.userPrompt)
     print(request.accessToken)
     print('id', request.userId)
+
+    if question_check(request.userPrompt) == "no":
+        return QueryResponse(response="Please ask relevant and appropriate questions.", url="")
     system_prompt = "You are a music AI bot helping the user anser their query. You have access to the Spotify API to generate playlists or get stats based on the user's query. Only make playlist if asked. Use the tools to help you answer the user's query."
     res, url = query(request.userPrompt, system_prompt)
+    conversation += f"User: {request.userPrompt}\nResponse: {res}\n"
     #res, url = generate_playlist(request.userPrompt, request.accessToken, request.userId)
     #get_recently_listened(request.accessToken)
     return QueryResponse(response=res, url=url)
     
-
 class SecondResponse(BaseModel):
     response: str
     
