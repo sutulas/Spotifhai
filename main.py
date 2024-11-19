@@ -47,8 +47,6 @@ class QueryResponse(BaseModel):
     response: str
     url: str
     
-
-
 user_id = ""
 auth_token = ""
 # Root endpoint
@@ -68,7 +66,7 @@ class SongRecommendationParams(BaseModel):
     target_loudness: float
     target_popularity: float
 
-  
+
 def get_user_uri(user_id, token):
     uri_j = requests.get(url = "https://api.spotify.com/v1/me", headers={"Content-Type":"application/json", "Authorization":f"Bearer {token}"})
     uri_r = uri_j.json()["uri"]
@@ -81,6 +79,10 @@ def get_user_uri(user_id, token):
         uri_r = matches[0]
     return(uri_r)
 
+
+
+
+### Create Spotify Playlist ###
 def create_playlist(title):
     uri = get_user_uri(user_id, auth_token)
     playlist_url = f"https://api.spotify.com/v1/users/{uri}/playlists"
@@ -100,6 +102,7 @@ def create_playlist(title):
     playlist_id = playlist_response.json()['id']
     return playlist_url, playlist_id
 
+### Get Song Spotify URIs ###
 def get_uris(songs):
     uris = []
     for song in songs:
@@ -115,6 +118,7 @@ def get_uris(songs):
         uris.append(uri)
     return uris
 
+### Song Recommendations ###
 def gpt_songs(prompt, length, data):
     songs = []
     if len(data) > 1:
@@ -161,6 +165,7 @@ def gpt_songs(prompt, length, data):
     songs = song_call.choices[0].message.content.split(", ")
     return songs
 
+### Playlist Generation ###
 def gpt_playlist(prompt, title, length = 20, additional_data = None):
     additional_info = ""
     if additional_data != None:
@@ -184,6 +189,7 @@ def gpt_playlist(prompt, title, length = 20, additional_data = None):
 
     return url
 
+### Recently Listened ###
 def get_recently_listened():
     global data
     token = auth_token
@@ -201,6 +207,7 @@ def get_recently_listened():
     data += f"Recently played: {rec_played}"
     return list(set(rec_played))
 
+### Top Artists ###
 def get_top_artists(time_range = 'medium_term'):
     global data
     url = 'https://api.spotify.com/v1/me/top/artists?limit=50&time_range=' + time_range
@@ -213,6 +220,7 @@ def get_top_artists(time_range = 'medium_term'):
     data += f"Top artists: {artists}"
     return artists
 
+### Top Tracks ###
 def get_top_tracks(time_range = 'medium_term'):
     global data
     url = 'https://api.spotify.com/v1/me/top/tracks?limit=50&time_range=' + time_range
@@ -225,14 +233,11 @@ def get_top_tracks(time_range = 'medium_term'):
     data += f"Top Tracks: {tracks}"
     return tracks
 
+### Conversation History ###
 def get_conversation():
     return conversation
 
-
-class PlaylistRequest(BaseModel):
-    userId: str
-    userPrompt: str
-    accessToken: str
+### Define Tools ###
 
 get_top_tracks_tool = {
   "type": "function",
@@ -358,7 +363,6 @@ conversation_tool = {
     }
 }
 
-### Define Tools ###
 tools = [get_top_tracks_tool, get_top_artists_tool, get_recently_listened_tool, gpt_playlist_tool, gpt_song_tool, conversation_tool]
 tool_map = {
     "get_top_tracks": get_top_tracks,
@@ -370,13 +374,16 @@ tool_map = {
 }
 
 
-### Query Function ###
+### Tool Calling function ###
 def query(question, system_prompt, max_iterations=10):
+    # Define variables
     global data
     data = ""
     messages = [{"role": "system", "content": system_prompt}]
     messages.append({"role": "user", "content": question})
     url = ''
+
+    # Tool calling loop
     i = 0
     while i < max_iterations:
         i += 1
@@ -384,10 +391,8 @@ def query(question, system_prompt, max_iterations=10):
         response = client.chat.completions.create(
             model="gpt-4o-mini", temperature=0.0, messages=messages, tools=tools
         )
-        # print(response.choices[0].message)
         if response.choices[0].message.content != None:
             print(response.choices[0].message.content)
-        # print(response.choices[0].message)
 
         # if not function call
         if response.choices[0].message.tool_calls == None:
@@ -397,13 +402,18 @@ def query(question, system_prompt, max_iterations=10):
         messages.append(response.choices[0].message)
         for tool_call in response.choices[0].message.tool_calls:
             print("calling:", tool_call.function.name, "with", tool_call.function.arguments)
-            # call the function
             
+            # call the function
             arguments = json.loads(tool_call.function.arguments)
             function_to_call = tool_map[tool_call.function.name]
+
+            # get the result of the function call
             result = function_to_call(**arguments)
+
+            # get the url if the function is gpt_playlist
             if tool_call.function.name == "gpt_playlist":
                 url = result
+            
             # create a message containing the result of the function call
             result_content = json.dumps({**arguments, "result": result})
             function_call_result_message = { 
@@ -418,6 +428,7 @@ def query(question, system_prompt, max_iterations=10):
     print("final response:", response.choices[0].message.content)
     return response.choices[0].message.content, url
 
+### Prompt Defense ###
 def question_check(question):
     prompt = f'''
     Determine whether the following question is appropriate:
@@ -438,6 +449,11 @@ def question_check(question):
     )
     return response.choices[0].message.content.lower()
 
+class PlaylistRequest(BaseModel):
+    userId: str
+    userPrompt: str
+    accessToken: str
+
 @app.post("/generatePlaylists")
 async def generate_playlists(request: PlaylistRequest):
     global auth_token
@@ -449,8 +465,10 @@ async def generate_playlists(request: PlaylistRequest):
     print(request.accessToken)
     print('id', request.userId)
 
+    # Check if the question is appropriate
     if question_check(request.userPrompt) == "no":
         return QueryResponse(response="Please ask relevant and appropriate questions.", url="")
+    
     system_prompt = f'''
         You are a music AI bot helping the user anser their query. 
         You have access to the Spotify API to generate playlists or get stats based on the user's query. 
@@ -466,7 +484,7 @@ async def generate_playlists(request: PlaylistRequest):
     
 class SecondResponse(BaseModel):
     response: str
-    
+
 @app.post("/authCheck")
 async def checkAuth(request: PlaylistRequest):
     res = get_user_uri(request.userId, request.accessToken)
