@@ -1,20 +1,25 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Box, Paper, Typography, Slide, CssBaseline, Tooltip, AppBar, Toolbar, Button } from '@mui/material';
-import { maxHeight, Stack, styled } from '@mui/system';
+import React, { useState, useEffect } from 'react';
+import { Box, Paper, CssBaseline, Tooltip, Card, CardContent, CardMedia, Tabs, Tab, AppBar, Toolbar, Button, CircularProgress } from '@mui/material';
+import Fab from '@mui/material/Fab';
+import { styled } from '@mui/system';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 import ChatbotWrapper from '../components/ChatbotWrapper';
 import { getPlaylistUrl, getRecentlyListened } from '../API/API';
-import AlbumIcon from '@mui/icons-material/Album';
 import AudiotrackIcon from '@mui/icons-material/Audiotrack';
-import StockTicker from '../components/Ticker';
+import QueryStatsIcon from '@mui/icons-material/QueryStats';
+import HeadphonesIcon from '@mui/icons-material/Headphones';
+import LogoutIcon from '@mui/icons-material/Logout';
+import LibraryMusicIcon from '@mui/icons-material/LibraryMusic';
 import { Spotify } from 'react-spotify-embed';
 import SpotifyEmbeded from '../components/SpotifyEmbed/SpotifyEmbeded';
+import { px } from 'framer-motion';
 
 // iMessage colors
 const iMessageColors = {
     background: '#e5e5ea',
     chatBackground: '#ffffff',
     messageGreen: '#34c759',
-    messageBlue: '#007aff',
+    messageBlue: '#ff6529',
     textColor: '#1c1c1e',
     placeholderText: '#8e8e93',
 };
@@ -28,19 +33,37 @@ const StyledContainer = styled(Box)({
     padding: '20px',
     gap: '16px',
     overflow: 'hidden',
+    '&:hover': {
+        boxShadow: '0px 6px 20px rgba(0, 0, 0, 0.2)',
+    },
+});
+
+const VerticalNav = styled(Box)({
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    backgroundColor: '#ffffff',
+    borderRadius: '16px',
+    boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.2)',
+    animation: 'slideInNav 0.6s ease-out',
+    '@keyframes slideInNav': {
+        from: { opacity: 0, transform: 'translateX(-100px)' },
+        to: { opacity: 1, transform: 'translateX(0)' },
+    },
 });
 
 // Styled chat container
 const ChatbotContainer = styled(Paper)(({ theme }) => ({
     flex: 1,
-    padding: theme.spacing(2),
+    padding: theme.spacing(1.5),
     backgroundColor: "#FFFFFF",
     color: 'white',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
+    alignItems: 'center',
     borderRadius: '16px',
-    boxShadow: '0px 4px 30px rgba(0, 0, 0, 0.2)',
+    boxShadow: '0px 0px 30px rgba(255, 120, 0, 0.5)',
     animation: 'slideIn 0.6s ease-out',
     '@keyframes slideIn': {
         from: { opacity: 0, transform: 'translateX(-50px)' },
@@ -52,106 +75,180 @@ const ChatbotContainer = styled(Paper)(({ theme }) => ({
 const ContentContainer = styled(Paper)(({ theme }) => ({
     flex: 2,
     padding: theme.spacing(2),
-    background: `linear-gradient(135deg, #f9f9f9, #e0e0e0)`,
+    backgroundColor: "#FFFFFF",
     color: iMessageColors.textColor,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: '16px',
-    boxShadow: '0px 4px 30px rgba(0, 0, 0, 0.1)',
+    boxShadow: '10px 0px 30px rgba(255, 120, 0, 0.5)',
     overflow: 'hidden',
     position: 'relative',
     transition: 'background-color 0.3s ease',
-    animation: 'fadeIn 0.6s ease-in-out',
+    animation: 'slideInRight 0.6s ease-out',
+    '@keyframes slideInRight': {
+        from: { opacity: 0, transform: 'translateX(50px)' },
+        to: { opacity: 1, transform: 'translateX(0)' },
+    },
+}));
+
+const RecentlyListenedSection = styled(Box)({
+    display: 'flex',
+    alignItems: 'center',
+    flexDirection: 'column',
+    gap: '15px',
+    padding: '15px',
+    width: '100%',
+    height: 'auto',
+    
+    
+});
+
+const RecentlyListenedItem = styled(Box)({
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '10px',
+});
+
+const RecentlyListenedText = styled(Box)({
+    flex: 1,
+    color: '#333', // Changed to a neutral dark color for text
+    fontWeight: 'normal', // Removed bold styling for a cleaner look
+    animation: 'fadeIn 0.6s ease-in',
     '@keyframes fadeIn': {
         from: { opacity: 0 },
         to: { opacity: 1 },
     },
-}));
-
-// 3D visual element with AlbumIcon
-const AIVisualElement = styled('div')({
-    width: '100px',
-    height: '100px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#e0e0e0',
-    borderRadius: '50%',
-    position: 'absolute',
-    top: '20%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    animation: 'float 3s ease-in-out infinite',
-    boxShadow: '0 20px 50px rgba(0, 0, 0, 0.3)',
-    '@keyframes float': {
-        '0%': { transform: 'translate(-50%, -50%) translateY(0) rotateY(0deg)' },
-        '50%': { transform: 'translate(-50%, -50%) translateY(-20px) rotateY(360deg)' },
-        '100%': { transform: 'translate(-50%, -50%) translateY(0) rotateY(720deg)' },
-    },
 });
 
-// Placeholder for chat instructions
-const PlaceholderContainer = styled(Box)({
+// Playlist Library grid styles
+const PlaylistGrid = styled(Box)({
     display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
+    flexWrap: 'wrap',          // Allow items to wrap to the next row
+    gap: '15px',
+    padding: '10px',
+    marginBottom: '10px',
+    overflowY: 'auto',
+    height: '100%',
+    borderRadius: '16px',
+    maxHeight: 'calc(100vh - 120px)',
+    justifyContent: 'flex-start', 
+    alignItems: 'flex-start',
+});
+
+const djPhrases = [
+    "Let's get the party started!", 
+    "Time for some hot tracks!", 
+    "Turn it up, baby!", 
+    "Get ready for the beats!", 
+    "DJ bot in the house! 🎧", 
+    "Prepare your ears for greatness.", 
+    "Bangers incoming!", 
+    "Don't blame me if you dance too hard. 💃", 
+    "Cue the awkward dance moves!", 
+    "Warning: fire tracks ahead. 🔥", 
+    "Time to vibe, no skipping allowed!", 
+    "Careful, this playlist slaps. 🙌", 
+    "Is it hot in here, or is it just these beats?", 
+    "No requests. DJ bot knows best.", 
+    "Feel the rhythm, embrace the chaos!", 
+    "Your neighbors might call... they'll want the link.", 
+    "Dance like no one's watching, except me. 😎", 
+    "Tracks so good, they'll make your playlist jealous.", 
+    "Step aside, humans. AI runs the decks now.", 
+    "Let's groove to the algorithm!"
+];
+
+const DjQuote = styled(Box)({
+    borderRadius: '16px',
+    backgroundColor: 'rgba(255, 101, 41, 0.8)', 
+    padding: '16px',
     textAlign: 'center',
-    color: iMessageColors.placeholderText,
+    fontSize: '1.5rem',
+    marginBottom: '20px',
+    fontWeight: 'bold',
+    color: '#ffffff',
 });
 
-// Styled button for interactions
-const StyledButton = styled('button')({
-    backgroundColor: iMessageColors.messageBlue,
-    color: '#FFFFFF',
-    border: 'none',
-    borderRadius: '8px',
-    padding: '10px 20px',
-    cursor: 'pointer',
-    fontSize: '16px',
-    marginTop: '20px',
-    transition: 'background-color 0.3s',
-    '&:hover': {
-        backgroundColor: '#0051a1',
+const theme = createTheme({
+    components: {
+        MuiTouchRipple: {
+            styleOverrides: {
+                rippleVisible: {
+                    backgroundColor: '#ff6529', // Ensure the ripple color is orange
+                },
+            },
+        },
+        MuiTab: {
+            styleOverrides: {
+                root: {
+                    "&.MuiTouchRipple-root": {
+                        color: "#ff6529", // Ripple color for Tabs
+                    },
+                    // Customize text color for selected tab
+                    "&.Mui-selected": {
+                        color: "#1DB954", // Green text when selected
+                    },
+                },
+            },
+        },
+        MuiButtonBase: {
+            styleOverrides: {
+                root: {
+                    "& .MuiTouchRipple-root": {
+                        color: "#ff6529", // Ripple color for other buttons
+                    },
+                },
+            },
+        },
     },
-});
-
-// Styled AppBar for toolbar
-const StyledAppBar = styled(AppBar)({
-    backgroundColor: '#ffffff',
-    color: iMessageColors.textColor,
-    boxShadow: 'none',
-});
-
-const Logo = styled('img')({
-    height: '30px',
-    marginRight: '8px',
 });
 
 export default function Main() {
-    const [tooltipOpen, setTooltipOpen] = useState(false);
     const [url, setUrl] = useState();
-    const [recentlyListened, setRecentlyListened] = React.useState("");
+    const [recentlyListened, setRecentlyListened] = useState([]);
+    const [value, setValue] = useState(0); // State to track selected tab
+    const [playlistLibrary, setPlaylistLibrary] = useState([]);
+    const [djPhrase, setDjPhrase] = useState('');
 
-    React.useState(() => {
-        const getRecent = async () => {
-            const res = await getRecentlyListened();
-            console.log(res);
-            setRecentlyListened(res.response);
+    useEffect(() => {
+        const fetchRecentlyListened = async () => {
+            try {
+                const res = await getRecentlyListened();
+                const songsString = res.response.replace('Recently Listened Songs: ', '');
+                const songs = songsString.split(' ------- ').map(song => song.trim());
+                setRecentlyListened(songs);
+            } catch (error) {
+                console.error("Error fetching recently listened songs:", error);
+            }
+        };
+    
+        const loadPlaylistLibrary = () => {
+            try {
+                const storedPlaylists = JSON.parse(localStorage.getItem('playlistLibrary')) || [];
+                setPlaylistLibrary(storedPlaylists);
+            } catch (error) {
+                console.error("Error loading playlist library from localStorage:", error);
+            }
+        };
+    
+        if (!url && value === 0) {
+            const djPhrase = getRandomDjPhrase();
+            setDjPhrase(djPhrase); // Show DJ phrase
+        } else {
+            setDjPhrase(''); // Clear DJ phrase
         }
-        getRecent();
-    });
-    const tooltipRef = useRef(null);
 
-    const handleButtonClick = () => {
-        setTooltipOpen(true);
-    };
+        // Fetch recently listened songs and load playlist library on component mount
+        fetchRecentlyListened();
+        loadPlaylistLibrary();
+    }, []);
+    
 
-    const handleClickOutside = (event) => {
-        if (tooltipRef.current && !tooltipRef.current.contains(event.target)) {
-            setTooltipOpen(false);
-        }
+    const handleChange = (event, newValue) => {
+        setValue(newValue);
     };
 
     const handleUrl = async (prompt) => {
@@ -159,131 +256,143 @@ export default function Main() {
         const response = await getPlaylistUrl({ prompt });
         console.log("Response:");
         console.log(response.url);
-        setTimeout(() => { 
-
-            console.log("Peener");
-            console.log(response.url);
-            setUrl(response.url);
+    
+        setTimeout(() => {
+            setUrl(response.url); // Set for "Music" tab
         }, 3000);
-        localStorage.setItem('playlist_url', response.url);
+    
+        // Store the playlist in localStorage for the "Playlist Library" tab
+        const updatedPlaylistLibrary = [...playlistLibrary, response.url];
+        setPlaylistLibrary(updatedPlaylistLibrary); // Update state
+        localStorage.setItem('playlistLibrary', JSON.stringify(updatedPlaylistLibrary));
+    
+        // Show a random DJ phrase
+        const djPhrase = getRandomDjPhrase();
+        setDjPhrase(djPhrase); // Update state with DJ phrase
+    
         return response.response;
     };
 
-    useEffect(() => {
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, []);
-
+    const getRandomDjPhrase = () => {
+        const randomIndex = Math.floor(Math.random() * djPhrases.length);
+        return djPhrases[randomIndex];
+    };      
+    
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
-            {/* AppBar (Toolbar) */}
-            <StyledAppBar position="sticky">
-                <Toolbar>
-                    <Stack direction="row" alignItems="center" spacing={2} flexGrow={1}>
-                        <AudiotrackIcon />
-                        <Typography variant="h6" color="inherit">SpotifHAI</Typography>
-                    </Stack>
-                    <Button color="inherit" onClick={() => {
-                        localStorage.clear();
-                        window.location.reload();
-                    }}>Log Out</Button>
-                </Toolbar>
-            </StyledAppBar>
+        <ThemeProvider theme={theme}>
+            <CssBaseline />
+            <StyledContainer>
+                {/* Vertical navbar with icon-only tabs */}
+                <VerticalNav>
+                    <Tabs
+                        value={value}
+                        onChange={handleChange}
+                        orientation="vertical"
+                        TabIndicatorProps={{
+                            style: { display: 'none' },
+                        }}
+                    >
+                        <Tooltip title="Create"  placement="right">
+                            <Tab icon={<AudiotrackIcon />} aria-label="Music" />
+                        </Tooltip>
 
-            {/* Main content */}
-            <StyledContainer sx={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
-                <CssBaseline />
-                <Slide direction="right" in mountOnEnter unmountOnExit>
-                    <Paper sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flex: 1,
-                        padding: '16px',
-                        backgroundColor: "#FFFFFF",
-                        color: 'white',
-                        borderRadius: '16px',
-                        height: "90%",
-                        boxShadow: '0px 4px 30px rgba(0, 0, 0, 0.2)',
-                        animation: 'slideIn 0.6s ease-out',
-                        '@keyframes slideIn': {
-                            from: { opacity: 0, transform: 'translateX(-50px)' },
-                            to: { opacity: 1, transform: 'translateX(0)' },
-                        }
-                    }}>
-                        <Stack sx={{ alignItems: 'center', justifyContent: 'center' }}>
-                            <Typography variant='h4' sx={{ p: 3 }} color='black'>{ }</Typography>
-                            <ChatbotContainer>
-                                <ChatbotWrapper chatBotResponseToMessage={handleUrl} />
-                            </ChatbotContainer>
-                        </Stack>
-                    </Paper>
-                </Slide>
+                        <Tooltip title="Statistics"  placement="right">
+                            <Tab icon={<QueryStatsIcon />} aria-label="Statistics" />
+                        </Tooltip>
 
-                <Slide direction="left" in mountOnEnter unmountOnExit>
-                    <ContentContainer sx={{ height: '90%', overflow: 'hidden' }}>
-                        {!url && (
-                            <AIVisualElement>
-                                <AlbumIcon style={{ fontSize: '50px', color: iMessageColors.textColor }} />
-                            </AIVisualElement>
+                        <Tooltip title="Recent Listening"  placement="right">
+                            <Tab icon={<HeadphonesIcon />} aria-label="Recent" />
+                        </Tooltip>
+
+                        <Tooltip title="Library"  placement="right">
+                            <Tab icon={<LibraryMusicIcon />} aria-label="Playlist Library" />
+                        </Tooltip>
+                    </Tabs>
+                </VerticalNav>
+
+                {/* Main Chatbot and Spotify content area */}
+                <ChatbotContainer>
+                    <ChatbotWrapper chatBotResponseToMessage={handleUrl} />
+                </ChatbotContainer>
+
+                {/* Content that switches based on the selected tab */}
+                <ContentContainer>
+                    {value === 0 && !url && (
+                        <>
+                        <DjQuote>
+                            {djPhrase}
+                        </DjQuote>
+                        <iframe
+                            src="https://lottie.host/embed/4505bc97-2bbe-40e1-bb3d-0d4d1ed3f453/gdQzVP9tLK.json"
+                            title="Loading animation"
+                            width="100%"
+                            height="400"
+                            style={{ border: "none", background: "transparent" }}
+                        />
+                        </>
+                    )}
+                    {value === 0 && url && <SpotifyEmbeded url={url}/>}
+                    {value === 1 && <div>Stats Placeholder</div>}
+                    {value === 2 && ( // History Tab
+                        <>
+                            <RecentlyListenedSection>
+                                <h2>Your Recent Listening</h2>
+                                {recentlyListened.length > 0 ? (
+                                    recentlyListened.map((song, index) => (
+                                        <RecentlyListenedItem key={index}>
+                                            <RecentlyListenedText>{song}</RecentlyListenedText>
+                                        </RecentlyListenedItem>
+                                    ))
+                                ) : (
+                                    <p>Loading...</p>
+                                )}
+                            </RecentlyListenedSection>
+                        </>)}
+                        {value === 3 && (
+                            <div style={{
+                                textAlign: 'center',
+                                marginTop: '10px',
+                            }}>
+                                <h2>Your AI Playlist Library</h2>
+                            <PlaylistGrid>
+                                {playlistLibrary.length > 0 ? (
+                                    playlistLibrary.map((playlistUrl, index) => (
+                                        <embed 
+                                            key={index} 
+                                            src={playlistUrl} 
+                                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                                            loading="lazy"
+                                            height="152px"
+                                            width="100%"
+                                        >
+                                        </embed>
+                                    ))
+                                ) : (
+                                    <p>No playlists added yet. Generate one to see it here!</p>
+                                )}
+                            </PlaylistGrid>
+                            </div>
                         )}
-                        {!url ? (
-                            <PlaceholderContainer>
-                                <Typography variant="h4" gutterBottom>
-                                    Ask me anything!
-                                </Typography>
-                                <Typography variant="body1" gutterBottom>
-                                    I’m here to generate playlists based on your input. Just start typing!
-                                </Typography>
-                                <Tooltip
-                                    ref={tooltipRef}
-                                    open={tooltipOpen}
-                                    title={
-                                        <Box>
-                                            <Typography variant="body1" gutterBottom>
-                                                Here are some example questions to get started:
-                                            </Typography>
-                                            <ul>
-                                                <li>Generate a playlist based on mood</li>
-                                                <li>Give me data visualizations on top artists</li>
-                                                <li>Suggest new music based on my preferences</li>
-                                            </ul>
-                                            <Typography variant="body2">
-                                                You can ask anything related to music or playlists. I'm here to help!
-                                            </Typography>
-                                        </Box>
-                                    }
-                                    arrow
-                                    placement="top"
-                                >
-                                </Tooltip>
-                            </PlaceholderContainer>
-                        ) : (
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                               <SpotifyEmbeded url={url}/>
-                            </Box>
-                        )}
-                    </ContentContainer>
-                </Slide>
 
-
-                {/* Position the StockTickerat the bottom */}
-                <Box sx={{
-                    position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    backgroundColor: '#f5f5f5', // Optional, adjust the background color as needed
-                    padding: '8px',
-                    textAlign: 'center'
-                }}>
-                    <StockTicker text={recentlyListened} />
-                </Box>
+                </ContentContainer>
+                <Tooltip title="Logout"  placement="top">
+                    <Fab
+                        color="#1DB954"
+                        aria-label="logout"
+                        style={{
+                            position: 'absolute',
+                            bottom: 50,
+                            left: 38,
+                        }}
+                        onClick={() => {
+                            localStorage.clear();
+                            window.location.reload();
+                        }}
+                    >
+                        <LogoutIcon />
+                    </Fab>
+                </Tooltip>
             </StyledContainer>
-        </Box>
+        </ThemeProvider>
     );
-
-
 }
