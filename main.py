@@ -129,18 +129,26 @@ def gpt_songs(prompt, length):
     message = f'''
     I want to create a playlist around this idea: '{prompt}'. What are the songs that best fit this theme? 
     Be Creative! Help the user to discover new music.
-    If I am asking for a playlist of specificaly provided songs, return those songs only.
+    If I am asking for a playlist of specifically provided songs, return those songs only.
     Give {length} songs. 
     Only respond with the title of the songs and the artist.
     Respond exactly in this format: "Song Title - Artist, Song Title - Artist, Song Title - Artist"
 
-    Generate only songs from these artists:
     {additional_info}
 
     Do not simply copy the songs (unless asked to) 
-    BE CREATIVE AND PROVIDE NEW SONGS (unless ased to make a playlist of provided songs).
+    BE CREATIVE AND PROVIDE NEW SONGS (unless asked to make a playlist of provided songs).
     '''
+    message = f'''
+    What are the songs that best fit this theme?
+    {prompt}
+    Recommend super popular songs that everyone knows and are also good.
+    
+    Give {length} songs. 
+    Only respond with the title of the songs and the artist.
+    Respond exactly in this format: "Song Title - Artist, Song Title - Artist, Song Title - Artist"
 
+    '''
     song_call = client.chat.completions.create(
         model="gpt-4o-mini", 
         messages=[
