@@ -167,12 +167,10 @@ def gpt_songs(prompt, length, data):
     return songs
 
 ### Playlist Generation ###
-def gpt_playlist(prompt, title, length = 20, additional_data = None):
-    additional_info = ""
-    if additional_data != None:
-        additional_info += data
+def gpt_playlist(prompt, title, length = 20):
+    global data
 
-    songs = gpt_songs(prompt, length, additional_info)
+    songs = gpt_songs(prompt, length, data)
 
     playlist_url, playlist_id = create_playlist(title)
 
@@ -315,10 +313,6 @@ gpt_playlist_tool = {
                         "length": {
                             "type": "integer",
                             "description": "The number of songs in the playlist",
-                        },
-                        "additional_data": {
-                            "type": "string",
-                            "description": "Supplemental Data to get (get_top_tracks, get_top_artists, and/or get_recently_listened)",
                         }
                     },
                     "required": ["prompt", "title"],
@@ -458,175 +452,6 @@ class PlaylistRequest(BaseModel):
     userId: str
     userPrompt: str
     accessToken: str
-
-get_top_tracks_tool = {
-  "type": "function",
-  "function": {
-      "name": "get_top_tracks",
-            "description": "Get the top tracks of the user",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "time_range": {
-                        "type": "string",
-                        "description": "The time range for the top tracks long_term (calculated from ~1 year of data and including all new data as it becomes available), medium_term (approximately last 6 months), short_term (approximately last 4 weeks)",
-                    }
-                },
-                "required": ["time_range"],
-                "additionalProperties": False,
-            },
-  }
-}
-
-get_top_artists_tool = {
-  "type": "function",
-  "function": {
-      "name": "get_top_artists",
-            "description": "Get the top artists of the user",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "time_range": {
-                        "type": "string",
-                        "description": "The time range for the top artists long_term (calculated from ~1 year of data and including all new data as it becomes available), medium_term (approximately last 6 months), short_term (approximately last 4 weeks)",
-                    }
-                },
-                "required": ["time_range"],
-                "additionalProperties": False,
-            },
-  }
-}
-
-get_recently_listened_tool = {
-    "type": "function",
-    "function": {
-        "name": "get_recently_listened",
-                "description": "Get the recently listened songs of the user",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                    },
-                    "additionalProperties": False,
-                },
-    }
-    }
-
-gpt_playlist_tool = {
-    "type": "function",
-    "function": {
-        "name": "gpt_playlist",
-                "description": "Create a playlist with the prompt provided",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "prompt": {
-                            "type": "string",
-                            "description": "The prompt for the playlist",
-                        },
-                        "title": {
-                            "type": "string",
-                            "description": "The title of the playlist",
-                        },
-                        "length": {
-                            "type": "integer",
-                            "description": "The number of songs in the playlist",
-                        },
-                        "data": {
-                            "type": "string",
-                            "description": "Supplemental Data to get (get_top_tracks, get_top_artists, and/or get_recently_listened)",
-                        }
-                    },
-                    "required": ["prompt", "title"],
-                    "additionalProperties": False,
-                },
-    }
-    }
-
-gpt_song_tool = {
-    "type": "function",
-    "function": {
-        "name": "gpt_songs",
-                "description": "Recommend songs based on the provided input",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "prompt": {
-                            "type": "string",
-                            "description": "The prompt for the playlist",
-                        },
-                        "length": {
-                            "type": "integer",
-                            "description": "The number of songs in the playlist",
-                        },
-                        "data": {
-                            "type": "string",
-                            "description": "Supplemental Data for the playlist (recently listened, top tracks, and/or top artists)",
-                        }
-                    },
-                    "required": ["prompt", "length", "data"],
-                    "additionalProperties": False,
-                },
-    }
-    }
-
-### Define Tools ###
-tools = [get_top_tracks_tool, get_top_artists_tool, get_recently_listened_tool, gpt_playlist_tool, gpt_song_tool]
-tool_map = {
-    "get_top_tracks": get_top_tracks,
-    "get_top_artists": get_top_artists,
-    "get_recently_listened": get_recently_listened,
-    "gpt_playlist": gpt_playlist,
-    "gpt_songs": gpt_songs
-}
-
-
-### Query Function ###
-def query(question, system_prompt, max_iterations=10):
-    messages = [{"role": "system", "content": system_prompt}]
-    messages.append({"role": "user", "content": question})
-    url = ''
-    i = 0
-    data = ""
-    while i < max_iterations:
-        i += 1
-        print("iteration:", i)
-        response = client.chat.completions.create(
-            model="gpt-4o-mini", temperature=0.0, messages=messages, tools=tools
-        )
-        # print(response.choices[0].message)
-        if response.choices[0].message.content != None:
-            print(response.choices[0].message.content)
-        # print(response.choices[0].message)
-
-        # if not function call
-        if response.choices[0].message.tool_calls == None:
-            break
-
-        # if function call
-        messages.append(response.choices[0].message)
-        for tool_call in response.choices[0].message.tool_calls:
-            print("calling:", tool_call.function.name, "with", tool_call.function.arguments)
-            # call the function
-            
-            arguments = json.loads(tool_call.function.arguments)
-            function_to_call = tool_map[tool_call.function.name]
-            result = function_to_call(**arguments)
-            if tool_call.function.name == "gpt_playlist":
-                url = result
-            # create a message containing the result of the function call
-            result_content = json.dumps({**arguments, "result": result})
-            function_call_result_message = { 
-                "role": "tool",
-                "content": result_content,
-                "tool_call_id": tool_call.id,
-            }
-            
-            messages.append(function_call_result_message)
-        if i == max_iterations and response.choices[0].message.tool_calls != None:
-            print("Max iterations reached")
-            return "The tool agent could not complete the task in the given time. Please try again."
-    print("final response:", response.choices[0].message.content)
-    return response.choices[0].message.content, url
 
 
 @app.post("/generatePlaylists")
