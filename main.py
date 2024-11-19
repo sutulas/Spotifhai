@@ -423,14 +423,11 @@ def question_check(question):
     Determine whether the following question is appropriate:
     "{question}"
 
-    Acceptable question include: "What can you do?", "Can you generate a playlist for me?", "Can you provide me with some song recommendations?", "Can you provide me with some stats on my music listening habits?" 
-    and any similar questions or questions about listening history or top artists or top tracks.
-
     Only say no to inappropriate questions.
 
     Respond with "Yes" or "No"
     '''
-    messages = [{"role": "system", "content": "You are a music AI bot helping the user anser their query."}]
+    messages = [{"role": "system", "content": "Determine whether the question is appropriate."}]
     messages.append({"role": "user", "content": prompt})
     response = client.chat.completions.create(
         model="gpt-4o-mini", temperature=0.0, messages= messages
