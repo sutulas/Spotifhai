@@ -88,6 +88,7 @@ const Chatbot = ({ addAIMessage, onUserMessage }) => {
         border: 'none',
         overflow: 'hidden',
         backgroundColor: '#ffffff',
+        borderRadius: '16px',
       }}
     >
       <div
@@ -241,7 +242,6 @@ const Chatbot = ({ addAIMessage, onUserMessage }) => {
         <MenuItem onClick={() => handleMenuItemClick('Give me a fun fact.')}>Give me a fun fact.</MenuItem>
         <MenuItem onClick={() => handleMenuItemClick('Make a playlist for sleeping.')}>Make a playlist for sleeping.</MenuItem>
         <MenuItem onClick={() => handleMenuItemClick('Create a playlist of underrated songs.')}>Create a playlist of underrated songs.</MenuItem>
-        <MenuItem onClick={() => handleMenuItemClick('Create a playlist of Darlene Love holiday classics.')}>Create a playlist of Darlene Love holiday classics.</MenuItem>
       </Menu>
 
       <style>

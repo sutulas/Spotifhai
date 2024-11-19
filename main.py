@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request 
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,6 +13,7 @@ import pandas
 import requests
 import regex as re
 import time
+import httpx 
 
 # Load environment variables from .env file
 load_dotenv()
@@ -392,6 +393,7 @@ def query(question, system_prompt, max_iterations=10):
                 "content": result_content,
                 "tool_call_id": tool_call.id,
             }
+            
             messages.append(function_call_result_message)
         if i == max_iterations and response.choices[0].message.tool_calls != None:
             print("Max iterations reached")
@@ -454,4 +456,37 @@ async def recentlyListened(request: PlaylistRequest):
     auth_token = request.accessToken
     res = get_recently_listened()
     return SecondResponse(response = "Recently Listened Songs:     " + " ------- ".join(res))
+
+@app.get("/api/playlists")
+async def get_playlists(request: Request):
     
+    print("Request Headers:", request.headers)
+
+    authorization = request.headers.get('Authorization')
+    print(f"Authorization Header: {authorization}")
+
+    if not authorization:
+        raise HTTPException(status_code=400, detail="Authorization header is missing")
+    
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=400, detail="Authorization header must have 'Bearer ' prefix")
+
+    headers = {"Authorization": authorization}
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                'https://api.spotify.com/v1/me/playlists',
+                headers=headers,
+                params={'limit': 50}
+                )
+        
+        print(f"Spotify API Response Status Code: {response.status_code}")
+        
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail="Error fetching playlists from Spotify")
+        
+        return response.json()
+    
+    except httpx.RequestError as e:
+        raise HTTPException(status_code=500, detail=f"Request error: {str(e)}")

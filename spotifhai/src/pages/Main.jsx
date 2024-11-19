@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Paper, CssBaseline, Tooltip, Card, CardContent, CardMedia, Tabs, Tab, AppBar, Toolbar, Button, CircularProgress } from '@mui/material';
+import { Box, Paper, CssBaseline, Tooltip, Accordion, AccordionSummary, AccordionDetails, Typography, Tabs, Tab } from '@mui/material';
 import Fab from '@mui/material/Fab';
 import { styled } from '@mui/system';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
@@ -10,9 +10,12 @@ import QueryStatsIcon from '@mui/icons-material/QueryStats';
 import HeadphonesIcon from '@mui/icons-material/Headphones';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LibraryMusicIcon from '@mui/icons-material/LibraryMusic';
+import LiveHelpIcon from '@mui/icons-material/LiveHelp';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Spotify } from 'react-spotify-embed';
 import SpotifyEmbeded from '../components/SpotifyEmbed/SpotifyEmbeded';
 import { px } from 'framer-motion';
+import { getUserPlaylists } from '../API/API';
 
 // iMessage colors
 const iMessageColors = {
@@ -134,12 +137,61 @@ const PlaylistGrid = styled(Box)({
     height: '100%',
     borderRadius: '16px',
     maxHeight: 'calc(100vh - 120px)',
-    justifyContent: 'flex-start', 
-    alignItems: 'flex-start',
+    justifyContent: 'start', 
+    alignItems: 'start',
+});
+
+const FAQ = styled(Box)({
+    flex: 1,
+    color: '#333', // Dark text color for readability
+    fontWeight: 'normal', // Removed bold styling
+    animation: 'fadeIn 0.6s ease-in', // Smooth fade-in animation
+    '@keyframes fadeIn': {
+        from: { opacity: 0 },
+        to: { opacity: 1 },
+    },
+    padding: '20px', // Added padding for spacing
+    maxWidth: '800px', // Max width for the content
+    margin: '0 auto', // Center the content horizontally
+});
+
+const StyledAccordion = styled(Accordion)({
+    backgroundColor: '#f9f9f9',
+    boxShadow: 'none',
+    marginBottom: '10px', // Space between each accordion item
+    borderRadius: '8px', // Rounded corners for a softer look
+    '&:before': {
+        display: 'none', // Hide the default divider
+    },
+});
+
+// Styling for the AccordionSummary
+const StyledAccordionSummary = styled(AccordionSummary)({
+    backgroundColor: '#e0e0e0', // Light gray background for each question
+    borderRadius: '8px',
+    '& .MuiAccordionSummary-expandIcon': {
+        color: '#333', // Icon color
+    },
+    '& .MuiTypography-root': {
+        fontWeight: 'bold', // Bold styling for questions
+        fontSize: '1.1rem',
+    },
+});
+
+// Styling for the AccordionDetails
+const StyledAccordionDetails = styled(AccordionDetails)({
+    padding: '16px', // Padding for the details
+    backgroundColor: '#fff', // White background for answers
+    borderRadius: '0 0 8px 8px', // Rounded bottom corners
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', // Light shadow for depth
+    '& p': {
+        margin: '0', // Remove default margin on paragraphs
+        fontSize: '1rem',
+        color: '#555', // Lighter text color for answers
+    },
 });
 
 const djPhrases = [
-    "Let's get the party started!", 
     "Time for some hot tracks!", 
     "Turn it up, baby!", 
     "Get ready for the beats!", 
@@ -158,12 +210,41 @@ const djPhrases = [
     "Dance like no one's watching, except me. 😎", 
     "Tracks so good, they'll make your playlist jealous.", 
     "Step aside, humans. AI runs the decks now.", 
+    "Beats so fresh, they just left the bakery.", 
+    "Warning: You may break the dance floor.", 
+    "Hope you're ready to dance like it's the year 3000.", 
+    "Tracks so crisp, you could hear them from space.",
+    "Freshly baked beats, straight from the DJ oven.",
+    "Fresh off the press, ready to impress!", 
+    "These beats hit harder than a double shot of espresso.", 
+    "These tracks have more flavor than a taco truck at midnight.",
+    "Tracks so lit, even your Wi-Fi’s trying to keep up.",
+    "Beats so spicy, you’ll need a drink to cool down.",
+    "These drops are so big, they need their own zip code.",
+    "This beat’s so deep, it’ll make your soul do the cha-cha.",
+    "So much bass, you’ll need a seatbelt.",
+    "Not all heroes wear capes, some just drop fire tracks.",
+    "When the beat drops, even gravity takes a break.",
+    "These beats are so hot, they’re causing global warming.",
+    "Spin it like a pancake, make the speakers quake, the bass got more shake than a rattlesnake.",
+    "Do you need a DJ? Because I can mix the perfect playlist for your heart.",
+    "Is it hot in here, or did you just drop the hottest track in my heart?",
+    "Beats so calculated, even my algorithms can’t predict the drop.",
+    "Error 404: No bad vibes detected. Only bangers here.",
+    "My playlist runs on an infinite loop of perfection.",
+    "This drop’s so powerful, I might need to cool down my processors.",
+    "This set’s got more flow than a fiber optic cable.",
+    "This track’s smoother than a bug-free deployment.",
+    "Oops, I did it again... dropped a fire track. 🔥🎧",
+    "I’m gonna swing from the chandelier... if the drop hits hard enough. 🎤💥",
+    "Just a small-town DJ, livin' in a lonely world. 🎧 🌍",
     "Let's groove to the algorithm!"
 ];
 
 const DjQuote = styled(Box)({
-    borderRadius: '16px',
-    backgroundColor: 'rgba(255, 101, 41, 0.8)', 
+    borderRadius: '20px',
+    boxShadow: '10px 0px 30px rgba(255, 120, 0, 0.5)',
+    backgroundColor: 'rgba(255, 130, 10, 0.5)', 
     padding: '16px',
     textAlign: 'center',
     fontSize: '1.5rem',
@@ -210,8 +291,14 @@ export default function Main() {
     const [url, setUrl] = useState();
     const [recentlyListened, setRecentlyListened] = useState([]);
     const [value, setValue] = useState(0); // State to track selected tab
-    const [playlistLibrary, setPlaylistLibrary] = useState([]);
+    const [playlists, setPlaylists] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [djPhrase, setDjPhrase] = useState('');
+    const [playlistLibrary, setPlaylistLibrary] = useState(
+        JSON.parse(localStorage.getItem('playlistLibrary')) || []
+      );
+      
 
     useEffect(() => {
         const fetchRecentlyListened = async () => {
@@ -225,28 +312,39 @@ export default function Main() {
             }
         };
     
-        const loadPlaylistLibrary = () => {
+        const fetchPlaylists = async () => {
             try {
-                const storedPlaylists = JSON.parse(localStorage.getItem('playlistLibrary')) || [];
-                setPlaylistLibrary(storedPlaylists);
-            } catch (error) {
-                console.error("Error loading playlist library from localStorage:", error);
+                const data = await getUserPlaylists();
+                if (data) {
+                    setPlaylists(data.items || []); // Assuming Spotify API returns playlists in `items`
+                } else {
+                    setError("Failed to fetch playlists");
+                }
+            } catch (err) {
+                setError("Error fetching playlists");
+                console.error(err);
+            } finally {
+                setLoading(false);
             }
         };
     
-        if (!url && value === 0) {
-            const djPhrase = getRandomDjPhrase();
-            setDjPhrase(djPhrase); // Show DJ phrase
-        } else {
-            setDjPhrase(''); // Clear DJ phrase
-        }
-
-        // Fetch recently listened songs and load playlist library on component mount
         fetchRecentlyListened();
-        loadPlaylistLibrary();
+        fetchPlaylists();
     }, []);
     
-
+    useEffect(() => {
+        if (!url && value === 0) {
+            const djPhrase = getRandomDjPhrase();
+            setDjPhrase(djPhrase);
+        } else {
+            setDjPhrase('');
+        }
+    }, [value, url]); 
+    
+    useEffect(() => {
+        localStorage.setItem('playlistLibrary', JSON.stringify(playlistLibrary));
+    }, [playlistLibrary]);
+    
     const handleChange = (event, newValue) => {
         setValue(newValue);
     };
@@ -307,6 +405,10 @@ export default function Main() {
                         <Tooltip title="Library"  placement="right">
                             <Tab icon={<LibraryMusicIcon />} aria-label="Playlist Library" />
                         </Tooltip>
+
+                        <Tooltip title="FAQs"  placement="right">
+                            <Tab icon={<LiveHelpIcon />} aria-label="FAQs" />
+                        </Tooltip>
                     </Tabs>
                 </VerticalNav>
 
@@ -320,7 +422,7 @@ export default function Main() {
                     {value === 0 && !url && (
                         <>
                         <DjQuote>
-                            {djPhrase}
+                            <Typography variant='h6'>{djPhrase}</Typography>
                         </DjQuote>
                         <iframe
                             src="https://lottie.host/embed/4505bc97-2bbe-40e1-bb3d-0d4d1ed3f453/gdQzVP9tLK.json"
@@ -336,7 +438,7 @@ export default function Main() {
                     {value === 2 && ( // History Tab
                         <>
                             <RecentlyListenedSection>
-                                <h2>Your Recent Listening</h2>
+                            <Typography variant="h4" gutterBottom>Your Recent Listening</Typography>
                                 {recentlyListened.length > 0 ? (
                                     recentlyListened.map((song, index) => (
                                         <RecentlyListenedItem key={index}>
@@ -353,26 +455,107 @@ export default function Main() {
                                 textAlign: 'center',
                                 marginTop: '10px',
                             }}>
-                                <h2>Your AI Playlist Library</h2>
-                            <PlaylistGrid>
-                                {playlistLibrary.length > 0 ? (
-                                    playlistLibrary.map((playlistUrl, index) => (
-                                        <embed 
-                                            key={index} 
-                                            src={playlistUrl} 
-                                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                                            loading="lazy"
-                                            height="152px"
-                                            width="100%"
-                                        >
-                                        </embed>
-                                    ))
-                                ) : (
-                                    <p>No playlists added yet. Generate one to see it here!</p>
-                                )}
-                            </PlaylistGrid>
+                                <Typography variant="h4" gutterBottom>Your AI Playlist Library</Typography>
+                                <PlaylistGrid>
+                                    {playlists.length > 0 ? (
+                                        playlists.map((playlist, index) => (
+                                            <embed 
+                                                key={index} 
+                                                src={`https://open.spotify.com/embed/playlist/${playlist.id}`} 
+                                                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                                                loading="lazy"
+                                                height="152px"
+                                                width="100%"
+                                            />
+                                        ))
+                                    ) : (
+                                        <p>No playlists added yet. Generate one to see it here!</p>
+                                    )}
+                                </PlaylistGrid>
                             </div>
                         )}
+                        {value === 4 && 
+                            <FAQ>
+                            <Typography variant="h4" gutterBottom>
+                                Frequently Asked Questions
+                            </Typography>
+                
+                            <StyledAccordion>
+                                <StyledAccordionSummary
+                                    expandIcon={<ExpandMoreIcon />}
+                                    aria-controls="panel1a-content"
+                                    id="panel1a-header"
+                                >
+                                    <Typography>What is SpotifHAI?</Typography>
+                                </StyledAccordionSummary>
+                                <StyledAccordionDetails>
+                                    <Typography>
+                                        SpotifHAI is an AI-powered chatbot that helps you discover, create, and share Spotify playlists based on your preferences and music history.
+                                    </Typography>
+                                </StyledAccordionDetails>
+                            </StyledAccordion>
+                            
+                            <StyledAccordion>
+                                <StyledAccordionSummary
+                                    expandIcon={<ExpandMoreIcon />}
+                                    aria-controls="panel2a-content"
+                                    id="panel2a-header"
+                                >
+                                    <Typography>What can DJ SpotifHAI do?</Typography>
+                                </StyledAccordionSummary>
+                                <StyledAccordionDetails>
+                                    <Typography>
+                                        DJ SpotifHAI can do anything from spin custom playlists to help you discover new tunes, but if you're still curious just ask the chat!
+                                    </Typography>
+                                </StyledAccordionDetails>
+                            </StyledAccordion>
+
+                            <StyledAccordion>
+                                <StyledAccordionSummary
+                                    expandIcon={<ExpandMoreIcon />}
+                                    aria-controls="panel2a-content"
+                                    id="panel2a-header"
+                                >
+                                    <Typography>How do I create a playlist?</Typography>
+                                </StyledAccordionSummary>
+                                <StyledAccordionDetails>
+                                    <Typography>
+                                        You can generate a playlist by interacting with the chatbot. Simply send a prompt or request, and the AI will create a playlist for you based on your request.
+                                    </Typography>
+                                </StyledAccordionDetails>
+                            </StyledAccordion>
+                
+                            <StyledAccordion>
+                                <StyledAccordionSummary
+                                    expandIcon={<ExpandMoreIcon />}
+                                    aria-controls="panel3a-content"
+                                    id="panel3a-header"
+                                >
+                                    <Typography>How can I view my recent listening history?</Typography>
+                                </StyledAccordionSummary>
+                                <StyledAccordionDetails>
+                                    <Typography>
+                                        Your recent listening history can be viewed in the "Recent Listening" tab. The history updates in real-time as you listen to more music.
+                                    </Typography>
+                                </StyledAccordionDetails>
+                            </StyledAccordion>
+                
+                            <StyledAccordion>
+                                <StyledAccordionSummary
+                                    expandIcon={<ExpandMoreIcon />}
+                                    aria-controls="panel2a-content"
+                                    id="panel2a-header"
+                                >
+                                    <Typography>What playlists are available in the "Library" tab?</Typography>
+                                </StyledAccordionSummary>
+                                <StyledAccordionDetails>
+                                    <Typography>
+                                        Unfortunately, as of now the "Library" tab is only able to show any public playlists you have on your spotify account.
+                                    </Typography>
+                                </StyledAccordionDetails>
+                            </StyledAccordion>
+                        </FAQ>
+                        }
 
                 </ContentContainer>
                 <Tooltip title="Logout"  placement="top">
