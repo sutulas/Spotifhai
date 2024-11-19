@@ -139,16 +139,7 @@ def gpt_songs(prompt, length):
     Do not simply copy the songs (unless asked to) 
     BE CREATIVE AND PROVIDE NEW SONGS (unless asked to make a playlist of provided songs).
     '''
-    message = f'''
-    What are the songs that best fit this theme?
-    {prompt}
-    Recommend super popular songs that everyone knows and are also good.
     
-    Give {length} songs. 
-    Only respond with the title of the songs and the artist.
-    Respond exactly in this format: "Song Title - Artist, Song Title - Artist, Song Title - Artist"
-
-    '''
     song_call = client.chat.completions.create(
         model="gpt-4o-mini", 
         messages=[
