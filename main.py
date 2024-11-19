@@ -421,6 +421,10 @@ def query(question, system_prompt, max_iterations=10):
 def question_check(question):
     prompt = f'''
     Determine whether the following question is appropriate:
+    here is the conversation so far:
+    {conversation}
+
+    here is the question:
     "{question}"
 
     Only say no to inappropriate questions.
@@ -447,7 +451,13 @@ async def generate_playlists(request: PlaylistRequest):
 
     if question_check(request.userPrompt) == "no":
         return QueryResponse(response="Please ask relevant and appropriate questions.", url="")
-    system_prompt = "You are a music AI bot helping the user anser their query. You have access to the Spotify API to generate playlists or get stats based on the user's query. Only make playlist if asked. Use the tools to help you answer the user's query."
+    system_prompt = f'''
+        You are a music AI bot helping the user anser their query. 
+        You have access to the Spotify API to generate playlists or get stats based on the user's query. 
+        Only make playlist if asked. Use the tools to help you answer the user's query.
+        here is the conversation so far:
+        {conversation}
+    '''
     res, url = query(request.userPrompt, system_prompt)
     conversation += f"User: {request.userPrompt}\nResponse: {res}\n"
     #res, url = generate_playlist(request.userPrompt, request.accessToken, request.userId)
