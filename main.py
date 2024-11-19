@@ -120,7 +120,7 @@ def get_uris(songs):
     return uris
 
 ### Song Recommendations ###
-def gpt_songs(prompt, length, data):
+def gpt_songs(prompt, length):
     songs = []
     if len(data) > 1:
         additional_info = f"Use this additional information: {data}"
@@ -129,13 +129,15 @@ def gpt_songs(prompt, length, data):
     message = f'''
     I want to create a playlist around this idea: '{prompt}'. What are the songs that best fit this theme? 
     Be Creative! Help the user to discover new music.
+    If I am asking for a playlist of specificaly provided songs, return those songs only.
     Give {length} songs. 
     Only respond with the title of the songs and the artist.
     Respond exactly in this format: "Song Title - Artist, Song Title - Artist, Song Title - Artist"
 
     {additional_info}
 
-    DO NOT SIMPLY COPY THE PROVIDED SONGS. BE CREATIVE AND PROVIDE NEW SONGS.
+    Do not simply copy the songs (unless asked to) 
+    BE CREATIVE AND PROVIDE NEW SONGS (unless ased to make a playlist of provided songs).
     '''
 
     song_call = client.chat.completions.create(
@@ -168,9 +170,8 @@ def gpt_songs(prompt, length, data):
 
 ### Playlist Generation ###
 def gpt_playlist(prompt, title, length = 20):
-    global data
 
-    songs = gpt_songs(prompt, length, data)
+    songs = gpt_songs(prompt, length)
 
     playlist_url, playlist_id = create_playlist(title)
 
@@ -336,13 +337,9 @@ gpt_song_tool = {
                         "length": {
                             "type": "integer",
                             "description": "The number of songs in the playlist",
-                        },
-                        "data": {
-                            "type": "string",
-                            "description": "Supplemental Data for the playlist (recently listened, top tracks, and/or top artists)",
                         }
                     },
-                    "required": ["prompt", "length", "data"],
+                    "required": ["prompt", "length"],
                     "additionalProperties": False,
                 },
     }
