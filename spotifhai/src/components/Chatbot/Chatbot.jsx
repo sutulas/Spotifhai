@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Menu, MenuItem, IconButton } from '@mui/material';
 import QuestionMarkIcon from '@mui/icons-material/QuestionMark';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 const Chatbot = ({ addAIMessage, onUserMessage }) => {
   const [messages, setMessages] = useState([]);

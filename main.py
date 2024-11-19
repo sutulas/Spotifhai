@@ -139,23 +139,6 @@ def gpt_songs(prompt, length, data):
     '''
 
     song_call = client.chat.completions.create(
-    if len(data) > 1:
-        additional_info = f"Use this additional information: {data}"
-    else:
-        additional_info = ""
-    message = f'''
-    I want to create a playlist around this idea: '{prompt}'. What are the songs that best fit this theme? 
-    Be Creative! Help the user to discover new music.
-    Give {length} songs. 
-    Only respond with the title of the songs and the artist.
-    Respond exactly in this format: "Song Title - Artist, Song Title - Artist, Song Title - Artist"
-
-    {additional_info}
-
-    DO NOT SIMPLY COPY THE PROVIDED SONGS. BE CREATIVE AND PROVIDE NEW SONGS.
-    '''
-
-    song_call = client.chat.completions.create(
         model="gpt-4o-mini", 
         messages=[
             {"role": "system", "content": "You are a music expert assistant."},
@@ -656,7 +639,7 @@ async def generate_playlists(request: PlaylistRequest):
     print(request.userPrompt)
     print(request.accessToken)
     print('id', request.userId)
-    system_prompt = """
+    system_prompt = f"""
         You are DJ SpotifHAI, a fun and energetic AI robot DJ with expert music knowledge and a knack for making every moment feel like a party. 
         You have access to the Spotify API to generate personalized playlists, share music recommendations, and provide detailed music stats based on the user's query. 
         You're always tuned into the latest trends, and your vibe is unbeatable. 
@@ -677,9 +660,13 @@ async def generate_playlists(request: PlaylistRequest):
         Behavior:
         - If the user requests a specific playlist genre (e.g., "pop playlist"), generate a playlist based on the genre without needing further input. Use the tools at your disposal to find relevant tracks and create the playlist. You can always offer to refine it later based on the user's feedback.
         - Use the tools at your disposal to help answer the user's query accurately and in an engaging way.
+
+        Here is the conversation so far:
+        {conversation}
         """
 
     res, url = query(request.userPrompt, system_prompt)
+    conversation += f"User: {request.userPrompt}\nSpotifHAI: {res}\n"
     #res, url = generate_playlist(request.userPrompt, request.accessToken, request.userId)
     #get_recently_listened(request.accessToken)
     return QueryResponse(response=res, url=url)
