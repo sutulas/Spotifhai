@@ -134,6 +134,7 @@ def gpt_songs(prompt, length):
     Only respond with the title of the songs and the artist.
     Respond exactly in this format: "Song Title - Artist, Song Title - Artist, Song Title - Artist"
 
+    Generate only songs from these artists:
     {additional_info}
 
     Do not simply copy the songs (unless asked to) 
