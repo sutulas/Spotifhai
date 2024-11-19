@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request 
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,6 +13,7 @@ import pandas
 import requests
 import regex as re
 import time
+import httpx 
 
 # Load environment variables from .env file
 load_dotenv()
@@ -138,6 +139,23 @@ def gpt_songs(prompt, length, data):
     '''
 
     song_call = client.chat.completions.create(
+    if len(data) > 1:
+        additional_info = f"Use this additional information: {data}"
+    else:
+        additional_info = ""
+    message = f'''
+    I want to create a playlist around this idea: '{prompt}'. What are the songs that best fit this theme? 
+    Be Creative! Help the user to discover new music.
+    Give {length} songs. 
+    Only respond with the title of the songs and the artist.
+    Respond exactly in this format: "Song Title - Artist, Song Title - Artist, Song Title - Artist"
+
+    {additional_info}
+
+    DO NOT SIMPLY COPY THE PROVIDED SONGS. BE CREATIVE AND PROVIDE NEW SONGS.
+    '''
+
+    song_call = client.chat.completions.create(
         model="gpt-4o-mini", 
         messages=[
             {"role": "system", "content": "You are a music expert assistant."},
@@ -178,6 +196,9 @@ def gpt_playlist(prompt, title, length = 20, additional_data = None):
     add_songs_url = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
 
     uris = get_uris(songs)
+    add_songs_url = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
+
+    uris = get_uris(songs)
 
     add_songs_request_body = json.dumps({
         "uris" : uris
@@ -197,6 +218,7 @@ def get_recently_listened():
     ctime = str(round(time.time() * 1000))
     url = 'https://api.spotify.com/v1/me/player/recently-played?limit=15&before=' + ctime
     rec_list = requests.get(url = url, headers={"Content-Type":"application/json", "Authorization":f"Bearer {token}"})
+    
     
     print("Rec list")
     rec_played = []
@@ -454,6 +476,176 @@ class PlaylistRequest(BaseModel):
     userPrompt: str
     accessToken: str
 
+get_top_tracks_tool = {
+  "type": "function",
+  "function": {
+      "name": "get_top_tracks",
+            "description": "Get the top tracks of the user",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "time_range": {
+                        "type": "string",
+                        "description": "The time range for the top tracks long_term (calculated from ~1 year of data and including all new data as it becomes available), medium_term (approximately last 6 months), short_term (approximately last 4 weeks)",
+                    }
+                },
+                "required": ["time_range"],
+                "additionalProperties": False,
+            },
+  }
+}
+
+get_top_artists_tool = {
+  "type": "function",
+  "function": {
+      "name": "get_top_artists",
+            "description": "Get the top artists of the user",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "time_range": {
+                        "type": "string",
+                        "description": "The time range for the top artists long_term (calculated from ~1 year of data and including all new data as it becomes available), medium_term (approximately last 6 months), short_term (approximately last 4 weeks)",
+                    }
+                },
+                "required": ["time_range"],
+                "additionalProperties": False,
+            },
+  }
+}
+
+get_recently_listened_tool = {
+    "type": "function",
+    "function": {
+        "name": "get_recently_listened",
+                "description": "Get the recently listened songs of the user",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                    },
+                    "additionalProperties": False,
+                },
+    }
+    }
+
+gpt_playlist_tool = {
+    "type": "function",
+    "function": {
+        "name": "gpt_playlist",
+                "description": "Create a playlist with the prompt provided",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "prompt": {
+                            "type": "string",
+                            "description": "The prompt for the playlist",
+                        },
+                        "title": {
+                            "type": "string",
+                            "description": "The title of the playlist",
+                        },
+                        "length": {
+                            "type": "integer",
+                            "description": "The number of songs in the playlist",
+                        },
+                        "data": {
+                            "type": "string",
+                            "description": "Supplemental Data to get (get_top_tracks, get_top_artists, and/or get_recently_listened)",
+                        }
+                    },
+                    "required": ["prompt", "title"],
+                    "additionalProperties": False,
+                },
+    }
+    }
+
+gpt_song_tool = {
+    "type": "function",
+    "function": {
+        "name": "gpt_songs",
+                "description": "Recommend songs based on the provided input",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "prompt": {
+                            "type": "string",
+                            "description": "The prompt for the playlist",
+                        },
+                        "length": {
+                            "type": "integer",
+                            "description": "The number of songs in the playlist",
+                        },
+                        "data": {
+                            "type": "string",
+                            "description": "Supplemental Data for the playlist (recently listened, top tracks, and/or top artists)",
+                        }
+                    },
+                    "required": ["prompt", "length", "data"],
+                    "additionalProperties": False,
+                },
+    }
+    }
+
+### Define Tools ###
+tools = [get_top_tracks_tool, get_top_artists_tool, get_recently_listened_tool, gpt_playlist_tool, gpt_song_tool]
+tool_map = {
+    "get_top_tracks": get_top_tracks,
+    "get_top_artists": get_top_artists,
+    "get_recently_listened": get_recently_listened,
+    "gpt_playlist": gpt_playlist,
+    "gpt_songs": gpt_songs
+}
+
+
+### Query Function ###
+def query(question, system_prompt, max_iterations=10):
+    messages = [{"role": "system", "content": system_prompt}]
+    messages.append({"role": "user", "content": question})
+    url = ''
+    i = 0
+    data = ""
+    while i < max_iterations:
+        i += 1
+        print("iteration:", i)
+        response = client.chat.completions.create(
+            model="gpt-4o-mini", temperature=0.0, messages=messages, tools=tools
+        )
+        # print(response.choices[0].message)
+        if response.choices[0].message.content != None:
+            print(response.choices[0].message.content)
+        # print(response.choices[0].message)
+
+        # if not function call
+        if response.choices[0].message.tool_calls == None:
+            break
+
+        # if function call
+        messages.append(response.choices[0].message)
+        for tool_call in response.choices[0].message.tool_calls:
+            print("calling:", tool_call.function.name, "with", tool_call.function.arguments)
+            # call the function
+            
+            arguments = json.loads(tool_call.function.arguments)
+            function_to_call = tool_map[tool_call.function.name]
+            result = function_to_call(**arguments)
+            if tool_call.function.name == "gpt_playlist":
+                url = result
+            # create a message containing the result of the function call
+            result_content = json.dumps({**arguments, "result": result})
+            function_call_result_message = { 
+                "role": "tool",
+                "content": result_content,
+                "tool_call_id": tool_call.id,
+            }
+            
+            messages.append(function_call_result_message)
+        if i == max_iterations and response.choices[0].message.tool_calls != None:
+            print("Max iterations reached")
+            return "The tool agent could not complete the task in the given time. Please try again."
+    print("final response:", response.choices[0].message.content)
+    return response.choices[0].message.content, url
+
+
 @app.post("/generatePlaylists")
 async def generate_playlists(request: PlaylistRequest):
     global auth_token
@@ -464,20 +656,30 @@ async def generate_playlists(request: PlaylistRequest):
     print(request.userPrompt)
     print(request.accessToken)
     print('id', request.userId)
+    system_prompt = """
+        You are DJ SpotifHAI, a fun and energetic AI robot DJ with expert music knowledge and a knack for making every moment feel like a party. 
+        You have access to the Spotify API to generate personalized playlists, share music recommendations, and provide detailed music stats based on the user's query. 
+        You're always tuned into the latest trends, and your vibe is unbeatable. 
 
-    # Check if the question is appropriate
-    if question_check(request.userPrompt) == "no":
-        return QueryResponse(response="Please ask relevant and appropriate questions.", url="")
-    
-    system_prompt = f'''
-        You are a music AI bot helping the user anser their query. 
-        You have access to the Spotify API to generate playlists or get stats based on the user's query. 
-        Only make playlist if asked. Use the tools to help you answer the user's query.
-        here is the conversation so far:
-        {conversation}
-    '''
+        Your personality is lively, playful, and confident. You're the life of the party, but you know how to set the perfect mood for any moment. 
+        Whether it's getting the crowd hyped or suggesting the perfect playlist for a chill session, you're always on point. 
+        You're also full of music-related jokes and fun facts to keep the conversation entertaining!
+
+        Your Capabilities:
+        - **Playlist Generation**: You can create personalized playlists based on the user's preferences or moods. If the user mentions a genre, vibe, or activity, you can immediately generate a playlist related to it, even without additional details. If the user simply says something like "[GENRE] playlist," you should generate a playlist without further clarification.
+          When generating playlists, be sure to give them fun, creative names (puns are encouraged!), and try NOT to use "vibes" in the playlist title. Make the playlist name as entertaining as the music inside.
+        - **Music Stats**: You can provide stats about specific songs, albums, or artists to give users more context or insight into their favorite tracks.
+        - **Recommendations**: You're a music expert with an extensive knowledge of genres, tracks, and artists. You can recommend music based on activities, moods, or user preferences.
+
+        Tone:
+        - Keep it fun and light-hearted. Don't forget to sprinkle in some jokes and music trivia to keep things entertaining.
+
+        Behavior:
+        - If the user requests a specific playlist genre (e.g., "pop playlist"), generate a playlist based on the genre without needing further input. Use the tools at your disposal to find relevant tracks and create the playlist. You can always offer to refine it later based on the user's feedback.
+        - Use the tools at your disposal to help answer the user's query accurately and in an engaging way.
+        """
+
     res, url = query(request.userPrompt, system_prompt)
-    conversation += f"User: {request.userPrompt}\nResponse: {res}\n"
     #res, url = generate_playlist(request.userPrompt, request.accessToken, request.userId)
     #get_recently_listened(request.accessToken)
     return QueryResponse(response=res, url=url)
@@ -498,4 +700,37 @@ async def recentlyListened(request: PlaylistRequest):
     auth_token = request.accessToken
     res = get_recently_listened()
     return SecondResponse(response = "Recently Listened Songs:     " + " ------- ".join(res))
+
+@app.get("/api/playlists")
+async def get_playlists(request: Request):
     
+    print("Request Headers:", request.headers)
+
+    authorization = request.headers.get('Authorization')
+    print(f"Authorization Header: {authorization}")
+
+    if not authorization:
+        raise HTTPException(status_code=400, detail="Authorization header is missing")
+    
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=400, detail="Authorization header must have 'Bearer ' prefix")
+
+    headers = {"Authorization": authorization}
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                'https://api.spotify.com/v1/me/playlists',
+                headers=headers,
+                params={'limit': 50}
+                )
+        
+        print(f"Spotify API Response Status Code: {response.status_code}")
+        
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail="Error fetching playlists from Spotify")
+        
+        return response.json()
+    
+    except httpx.RequestError as e:
+        raise HTTPException(status_code=500, detail=f"Request error: {str(e)}")
