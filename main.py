@@ -510,6 +510,19 @@ async def recentlyListened(request: PlaylistRequest):
     res = get_recently_listened()
     return SecondResponse(response = "Recently Listened Songs:     " + " ------- ".join(res))
 
+# Endpoint to get top artists, returns a list of the top artists
+@app.post("/topArtists")
+async def topArtists(request: PlaylistRequest):
+    res = get_top_artists()
+    # res is a list of the top artists
+    return SecondResponse(res)
+
+# Endpoint to get top tracks, returns a list of the top tracks
+@app.post("/topTracks")
+async def topTracks(request: PlaylistRequest):
+    res = get_top_tracks()
+    # res is a list of the top tracks
+    return SecondResponse(res)
 @app.get("/api/playlists")
 async def get_playlists(request: Request):
     
