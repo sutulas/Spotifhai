@@ -15,6 +15,8 @@ import regex as re
 import time
 import httpx 
 
+#python -m uvicorn main:app --reload
+
 # Load environment variables from .env file
 load_dotenv()
 
