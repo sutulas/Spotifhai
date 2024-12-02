@@ -16,6 +16,9 @@ import { Spotify } from 'react-spotify-embed';
 import SpotifyEmbeded from '../components/SpotifyEmbed/SpotifyEmbeded';
 import { px } from 'framer-motion';
 import { getUserPlaylists } from '../API/API';
+import { getTopArtists } from '../API/API';
+import { getTopTracks } from '../API/API';
+
 
 // iMessage colors
 const iMessageColors = {
@@ -293,6 +296,9 @@ export default function Main() {
     const [value, setValue] = useState(0); // State to track selected tab
     const [playlists, setPlaylists] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [topArtists, setTopArtists] = useState([]);
+    const [topTracks, setTopTracks] = useState([]);
+    const [tracks_loading, setTracksLoading] = useState(true);
     const [error, setError] = useState(null);
     const [djPhrase, setDjPhrase] = useState('');
     const [playlistLibrary, setPlaylistLibrary] = useState(
@@ -327,9 +333,33 @@ export default function Main() {
                 setLoading(false);
             }
         };
+
+        const fetchTopTracks = async () => {
+            try {
+            const res= await getTopTracks();
+            const tracks = res.response.split(',').map(track => track.trim());
+            setTopTracks(tracks);
+            } catch (error) {
+            console.error('Error fetching top tracks:', error);
+            }
+        };
+
+        const fetchTopArtists = async () => {
+            try {
+            const res = await getTopArtists();
+            const artists = res.response.split(',').map(artist => artist.trim());
+            console.log(artists);
+            setTopArtists(artists);
+            } catch (error) {
+            console.error('Error fetching top artists:', error);
+            }
+        };
     
         fetchRecentlyListened();
         fetchPlaylists();
+        fetchTopArtists();
+        fetchTopTracks();
+        setTracksLoading(false);
     }, []);
     
     useEffect(() => {
@@ -434,7 +464,57 @@ export default function Main() {
                         </>
                     )}
                     {value === 0 && url && <SpotifyEmbeded url={url}/>}
-                    {value === 1 && <div>Stats Placeholder</div>}
+                    {value === 1 && (
+                        <>
+                        <Box display="flex" justifyContent="space-between" gap="20px" style={{ marginTop: '20px' }}>
+                            {/* Top Artists Section */}
+                            <Box flex="1">
+                                <Typography variant="h4" gutterBottom>
+                                    Top Artists
+                                </Typography>
+                                {tracks_loading ? (
+                                    <p>Loading...</p>
+                                ) : (
+                                    <Box>
+                                        {topArtists.length > 0 ? (
+                                            topArtists.map((Artist, index) => (
+                                                <Typography key={index} variant="h6">
+                                                    {index + 1}. {Artist}
+                                                </Typography>
+                                            ))
+                                        ) : (
+                                            <p>No top artists available.</p>
+                                        )}
+                                    </Box>
+                                )}
+                            </Box>
+
+                            {/* Top Songs Section */}
+                            <Box flex="1">
+                                <Typography variant="h4" gutterBottom>
+                                    Top Songs
+                                </Typography>
+                                {tracks_loading ? (
+                                    <p>Loading...</p>
+                                ) : (
+                                    <Box>
+                                        {topTracks.length > 0 ? (
+                                            topTracks.map((track, index) => (
+                                                <Typography key={index} variant="h6">
+                                                    {index + 1}. {track}
+                                                </Typography>
+                                            ))
+                                        ) : (
+                                            <p>No top songs available.</p>
+                                        )}
+                                    </Box>
+                                )}
+                            </Box>
+                        </Box>
+                    </>
+
+                    
+                    )}
                     {value === 2 && ( // History Tab
                         <>
                             <RecentlyListenedSection>
