@@ -256,6 +256,7 @@ const DjQuote = styled(Box)({
     color: '#ffffff',
 });
 
+//Components for Stats page
 // Styled components
 const ScrollableSection = styled(Box)({
     borderRadius: '20px',
@@ -275,6 +276,9 @@ const ContainerBox = styled(Box)({
     gap: '20px',
     marginTop: '20px',
 });
+
+
+
 
 const theme = createTheme({
     components: {
