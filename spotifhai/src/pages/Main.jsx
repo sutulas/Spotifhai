@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Paper, CssBaseline, Tooltip, Accordion, AccordionSummary, AccordionDetails, Typography, Tabs, Tab, CircularProgress } from '@mui/material';
+import { Box, Paper, CssBaseline, Tooltip, Accordion, AccordionSummary, AccordionDetails, Typography, Tabs, Tab, CircularProgress, ListItem, ListItemIcon, ListItemText, List, Divider, Slide } from '@mui/material';
 import Fab from '@mui/material/Fab';
 import { styled } from '@mui/system';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
@@ -400,25 +400,25 @@ export default function Main() {
 
         const fetchTopTracks = async () => {
             try {
-            const res= await getTopTracks();
-            const tracks = res.response.split(',,').map(track => track.trim());
-            setTopTracks(tracks);
+                const res = await getTopTracks();
+                const tracks = res.response.split(',,').map(track => track.trim());
+                setTopTracks(tracks);
             } catch (error) {
-            console.error('Error fetching top tracks:', error);
+                console.error('Error fetching top tracks:', error);
             }
         };
 
         const fetchTopArtists = async () => {
             try {
-            const res = await getTopArtists();
-            const artists = res.response.split(',,').map(artist => artist.trim());
-            console.log(artists);
-            setTopArtists(artists);
+                const res = await getTopArtists();
+                const artists = res.response.split(',,').map(artist => artist.trim());
+                console.log(artists);
+                setTopArtists(artists);
             } catch (error) {
-            console.error('Error fetching top artists:', error);
+                console.error('Error fetching top artists:', error);
             }
         };
-    
+
         fetchRecentlyListened();
         fetchPlaylists();
         fetchTopArtists();
@@ -443,12 +443,12 @@ export default function Main() {
         setValue(newValue);
     };
 
-    const playListFilter = () => { 
+    const playListFilter = () => {
         return playlists.filter(playlist => playlist.name.endsWith("SpotifHAI"));
     }
 
 
-   
+
     const handleUrl = async (prompt) => {
         console.log(prompt);
         const response = await getPlaylistUrl({ prompt });
@@ -533,56 +533,157 @@ export default function Main() {
                             />
                         </>
                     )}
-                    {value === 0 && url && <SpotifyEmbeded url={url}/>}
+                    {value === 0 && url && <SpotifyEmbeded url={url} />}
                     {value === 1 && (
                         <>
-                        <ContainerBox>
-                            {/* Top Artists Section */}
-                            <ScrollableSection>
-                                <Typography variant="h4" gutterBottom>
-                                    Top Artists
-                                </Typography>
-                                {tracks_loading ? (
-                                    <p>Loading...</p>
-                                ) : (
-                                    <Box>
-                                        {topArtists.length > 0 ? (
-                                            topArtists.map((Artist, index) => (
-                                                <Typography key={index} variant="h6">
-                                                    {index + 1}. {Artist}
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    maxHeight: "80vh",
+                                    gap: 4,
+                                    padding: 4,
+                                    background: "linear-gradient(135deg, #f9f9f9, #e8eaf6)",
+                                    borderRadius: 4,
+                                    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.2)",
+                                }}
+                            >
+                                {/* Top Artists Section */}
+                                <Box sx={{ flex: 1 }}>
+                                    <Typography
+                                        variant="h4"
+                                        gutterBottom
+                                        sx={{
+                                            fontWeight: 600,
+                                            background: "linear-gradient(90deg, #6a11cb, #2575fc)",
+                                            WebkitBackgroundClip: "text",
+                                            WebkitTextFillColor: "transparent",
+                                        }}
+                                    >
+                                        Top 5 Artists
+                                    </Typography>
+                                    {tracks_loading ? (
+                                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: 100 }}>
+                                            <CircularProgress />
+                                        </Box>
+                                    ) : (
+                                        <Box
+                                            sx={{
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                gap: 2,
+                                            }}
+                                        >
+                                            {topArtists.length > 0 ? (
+                                                topArtists.slice(0, 5).map((artist, index) => (
+                                                    <Slide direction="up" in={!tracks_loading} mountOnEnter unmountOnExit key={index}>
+                                                        <Box
+                                                            sx={{
+                                                                display: "flex",
+                                                                alignItems: "center",
+                                                                justifyContent: "space-between",
+                                                                padding: 2,
+                                                                background: "linear-gradient(135deg, #ff9a9e, #fad0c4)",
+                                                                borderRadius: 2,
+                                                                boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
+                                                                transition: "transform 0.3s, box-shadow 0.3s",
+                                                                "&:hover": {
+                                                                    transform: "scale(1.05)",
+                                                                    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.2)",
+                                                                },
+                                                            }}
+                                                        >
+                                                            <Typography
+                                                                variant="h6"
+                                                                sx={{
+                                                                    fontWeight: "bold",
+                                                                }}
+                                                            >
+                                                                {`${index + 1}. ${artist}`}
+                                                            </Typography>
+                                                            <MusicNoteIcon sx={{ fontSize: 40, color: "#fff" }} />
+                                                        </Box>
+                                                    </Slide>
+                                                ))
+                                            ) : (
+                                                <Typography variant="body2" color="textSecondary">
+                                                    No top artists available.
                                                 </Typography>
-                                            ))
-                                        ) : (
-                                            <p>No top artists available.</p>
-                                        )}
-                                    </Box>
-                                )}
-                            </ScrollableSection>
+                                            )}
+                                        </Box>
+                                    )}
+                                </Box>
 
-                            {/* Top Songs Section */}
-                            <ScrollableSection>
-                                <Typography variant="h4" gutterBottom>
-                                    Top Songs
-                                </Typography>
-                                {tracks_loading ? (
-                                    <p>Loading...</p>
-                                ) : (
-                                    <Box>
-                                        {topTracks.length > 0 ? (
-                                            topTracks.map((track, index) => (
-                                                <Typography key={index} variant="h6">
-                                                    {index + 1}. {track}
+                                <Divider orientation="vertical" flexItem />
+
+                                {/* Top Songs Section */}
+                                <Box sx={{ flex: 1 }}>
+                                    <Typography
+                                        variant="h4"
+                                        gutterBottom
+                                        sx={{
+                                            fontWeight: 600,
+                                            background: "linear-gradient(90deg, #ff6a00, #ee0979)",
+                                            WebkitBackgroundClip: "text",
+                                            WebkitTextFillColor: "transparent",
+                                        }}
+                                    >
+                                        Top 5 Songs
+                                    </Typography>
+                                    {tracks_loading ? (
+                                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: 100 }}>
+                                            <CircularProgress />
+                                        </Box>
+                                    ) : (
+                                        <Box
+                                            sx={{
+                                                display: "flex",
+                                                flexDirection: "column",
+                                                gap: 2,
+                                            }}
+                                        >
+                                            {topTracks.length > 0 ? (
+                                                topTracks.slice(0, 5).map((song, index) => (
+                                                    <Slide direction="up" in={!tracks_loading} mountOnEnter unmountOnExit key={index}>
+                                                        <Box
+                                                            sx={{
+                                                                display: "flex",
+                                                                alignItems: "center",
+                                                                justifyContent: "space-between",
+                                                                padding: 2,
+                                                                background: "linear-gradient(135deg, #fbc2eb, #a6c1ee)",
+                                                                borderRadius: 2,
+                                                                boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
+                                                                transition: "transform 0.3s, box-shadow 0.3s",
+                                                                "&:hover": {
+                                                                    transform: "scale(1.05)",
+                                                                    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.2)",
+                                                                },
+                                                            }}
+                                                        >
+                                                            <Typography
+                                                                variant="h6"
+                                                                sx={{
+                                                                    fontWeight: "bold",
+                                                                }}
+                                                            >
+                                                                {`${index + 1}. ${song}`}
+                                                            </Typography>
+                                                            <MusicNoteIcon sx={{ fontSize: 40, color: "#fff" }} />
+                                                        </Box>
+                                                    </Slide>
+                                                ))
+                                            ) : (
+                                                <Typography variant="body2" color="textSecondary">
+                                                    No top songs available.
                                                 </Typography>
-                                            ))
-                                        ) : (
-                                            <p>No top songs available.</p>
-                                        )}
-                                    </Box>
-                                )}
-                            </ScrollableSection>
-                        </ContainerBox>
+                                            )}
+                                        </Box>
+                                    )}
+                                </Box>
+                            </Box>
+
                         </>
-                    
+
                     )}
                     {value === 2 && ( // History Tab
                         <>
