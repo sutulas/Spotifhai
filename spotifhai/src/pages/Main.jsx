@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Paper, CssBaseline, Tooltip, Accordion, AccordionSummary, AccordionDetails, Typography, Tabs, Tab } from '@mui/material';
+import { Box, Paper, CssBaseline, Tooltip, Accordion, AccordionSummary, AccordionDetails, Typography, Tabs, Tab, CircularProgress } from '@mui/material';
 import Fab from '@mui/material/Fab';
 import { styled } from '@mui/system';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
@@ -16,6 +16,7 @@ import { Spotify } from 'react-spotify-embed';
 import SpotifyEmbeded from '../components/SpotifyEmbed/SpotifyEmbeded';
 import { px } from 'framer-motion';
 import { getUserPlaylists } from '../API/API';
+import MusicNoteIcon from '@mui/icons-material/MusicNote';
 
 // iMessage colors
 const iMessageColors = {
@@ -100,29 +101,65 @@ const RecentlyListenedSection = styled(Box)({
     display: 'flex',
     alignItems: 'center',
     flexDirection: 'column',
-    gap: '15px',
-    padding: '15px',
+    gap: '20px',
+    padding: '30px 15px',
     width: '100%',
     height: 'auto',
-    
-    
+    maxHeight: '80vh', // Limit the height of the section
+    overflowY: 'auto', // Enable vertical scrolling
+    backgroundColor: '#f9f9f9',
+    borderRadius: '10px',
+    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+    '&::-webkit-scrollbar': { // Custom scrollbar styling
+        width: '8px',
+    },
+    '&::-webkit-scrollbar-thumb': {
+        backgroundColor: '#c1c1c1',
+        borderRadius: '4px',
+    },
+    '&::-webkit-scrollbar-thumb:hover': {
+        backgroundColor: '#a1a1a1',
+    },
 });
 
 const RecentlyListenedItem = styled(Box)({
     display: 'flex',
     alignItems: 'center',
-    gap: '10px',
-    padding: '10px',
+    gap: '15px', // Increased gap for better spacing
+    padding: '15px 10px',
+    width: '100%',
+    backgroundColor: '#ffffff', // Card-like style for each item
+    borderRadius: '8px',
+    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)', // Subtle shadow for depth
+    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+    '&:hover': {
+        transform: 'scale(1.02)', // Slight scaling on hover
+        boxShadow: '0px 6px 12px rgba(0, 0, 0, 0.15)', // More pronounced shadow
+    },
 });
 
 const RecentlyListenedText = styled(Box)({
     flex: 1,
-    color: '#333', // Changed to a neutral dark color for text
-    fontWeight: 'normal', // Removed bold styling for a cleaner look
+    color: '#333',
+    fontSize: '16px', // Standardized font size
+    fontWeight: 500, // Medium weight for emphasis
     animation: 'fadeIn 0.6s ease-in',
     '@keyframes fadeIn': {
         from: { opacity: 0 },
         to: { opacity: 1 },
+    },
+});
+
+const IconWrapper = styled(Box)({
+    width: '50px',
+    height: '50px',
+    borderRadius: '8px',
+    overflow: 'hidden', // Ensures image stays within bounds
+    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)', // Adds depth to icons
+    '& img': {
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover', // Keeps images proportional
     },
 });
 
@@ -137,7 +174,7 @@ const PlaylistGrid = styled(Box)({
     height: '100%',
     borderRadius: '16px',
     maxHeight: 'calc(100vh - 120px)',
-    justifyContent: 'start', 
+    justifyContent: 'start',
     alignItems: 'start',
 });
 
@@ -192,31 +229,31 @@ const StyledAccordionDetails = styled(AccordionDetails)({
 });
 
 const djPhrases = [
-    "Time for some hot tracks!", 
-    "Turn it up, baby!", 
-    "Get ready for the beats!", 
-    "DJ bot in the house! 🎧", 
-    "Prepare your ears for greatness.", 
-    "Bangers incoming!", 
-    "Don't blame me if you dance too hard. 💃", 
-    "Cue the awkward dance moves!", 
-    "Warning: fire tracks ahead. 🔥", 
-    "Time to vibe, no skipping allowed!", 
-    "Careful, this playlist slaps. 🙌", 
-    "Is it hot in here, or is it just these beats?", 
-    "No requests. DJ bot knows best.", 
-    "Feel the rhythm, embrace the chaos!", 
-    "Your neighbors might call... they'll want the link.", 
-    "Dance like no one's watching, except me. 😎", 
-    "Tracks so good, they'll make your playlist jealous.", 
-    "Step aside, humans. AI runs the decks now.", 
-    "Beats so fresh, they just left the bakery.", 
-    "Warning: You may break the dance floor.", 
-    "Hope you're ready to dance like it's the year 3000.", 
+    "Time for some hot tracks!",
+    "Turn it up, baby!",
+    "Get ready for the beats!",
+    "DJ bot in the house! 🎧",
+    "Prepare your ears for greatness.",
+    "Bangers incoming!",
+    "Don't blame me if you dance too hard. 💃",
+    "Cue the awkward dance moves!",
+    "Warning: fire tracks ahead. 🔥",
+    "Time to vibe, no skipping allowed!",
+    "Careful, this playlist slaps. 🙌",
+    "Is it hot in here, or is it just these beats?",
+    "No requests. DJ bot knows best.",
+    "Feel the rhythm, embrace the chaos!",
+    "Your neighbors might call... they'll want the link.",
+    "Dance like no one's watching, except me. 😎",
+    "Tracks so good, they'll make your playlist jealous.",
+    "Step aside, humans. AI runs the decks now.",
+    "Beats so fresh, they just left the bakery.",
+    "Warning: You may break the dance floor.",
+    "Hope you're ready to dance like it's the year 3000.",
     "Tracks so crisp, you could hear them from space.",
     "Freshly baked beats, straight from the DJ oven.",
-    "Fresh off the press, ready to impress!", 
-    "These beats hit harder than a double shot of espresso.", 
+    "Fresh off the press, ready to impress!",
+    "These beats hit harder than a double shot of espresso.",
     "These tracks have more flavor than a taco truck at midnight.",
     "Tracks so lit, even your Wi-Fi’s trying to keep up.",
     "Beats so spicy, you’ll need a drink to cool down.",
@@ -244,7 +281,7 @@ const djPhrases = [
 const DjQuote = styled(Box)({
     borderRadius: '20px',
     boxShadow: '10px 0px 30px rgba(255, 120, 0, 0.5)',
-    backgroundColor: 'rgba(255, 130, 10, 0.5)', 
+    backgroundColor: 'rgba(255, 130, 10, 0.5)',
     padding: '16px',
     textAlign: 'center',
     fontSize: '1.5rem',
@@ -297,8 +334,9 @@ export default function Main() {
     const [djPhrase, setDjPhrase] = useState('');
     const [playlistLibrary, setPlaylistLibrary] = useState(
         JSON.parse(localStorage.getItem('playlistLibrary')) || []
-      );
-      
+    );
+
+
 
     useEffect(() => {
         const fetchRecentlyListened = async () => {
@@ -311,12 +349,14 @@ export default function Main() {
                 console.error("Error fetching recently listened songs:", error);
             }
         };
-    
+
         const fetchPlaylists = async () => {
             try {
                 const data = await getUserPlaylists();
                 if (data) {
                     setPlaylists(data.items || []); // Assuming Spotify API returns playlists in `items`
+                    console.log("Playlist data");
+                    console.log(data);
                 } else {
                     setError("Failed to fetch playlists");
                 }
@@ -327,11 +367,11 @@ export default function Main() {
                 setLoading(false);
             }
         };
-    
+
         fetchRecentlyListened();
         fetchPlaylists();
     }, []);
-    
+
     useEffect(() => {
         if (!url && value === 0) {
             const djPhrase = getRandomDjPhrase();
@@ -339,43 +379,49 @@ export default function Main() {
         } else {
             setDjPhrase('');
         }
-    }, [value, url]); 
-    
+    }, [value, url]);
+
     useEffect(() => {
         localStorage.setItem('playlistLibrary', JSON.stringify(playlistLibrary));
     }, [playlistLibrary]);
-    
+
     const handleChange = (event, newValue) => {
         setValue(newValue);
     };
 
+    const playListFilter = () => { 
+        return playlists.filter(playlist => playlist.name.endsWith("SpotifHAI"));
+    }
+
+
+   
     const handleUrl = async (prompt) => {
         console.log(prompt);
         const response = await getPlaylistUrl({ prompt });
         console.log("Response:");
         console.log(response.url);
-    
+
         setTimeout(() => {
             setUrl(response.url); // Set for "Music" tab
         }, 3000);
-    
+
         // Store the playlist in localStorage for the "Playlist Library" tab
         const updatedPlaylistLibrary = [...playlistLibrary, response.url];
         setPlaylistLibrary(updatedPlaylistLibrary); // Update state
         localStorage.setItem('playlistLibrary', JSON.stringify(updatedPlaylistLibrary));
-    
+
         // Show a random DJ phrase
         const djPhrase = getRandomDjPhrase();
         setDjPhrase(djPhrase); // Update state with DJ phrase
-    
+
         return response.response;
     };
 
     const getRandomDjPhrase = () => {
         const randomIndex = Math.floor(Math.random() * djPhrases.length);
         return djPhrases[randomIndex];
-    };      
-    
+    };
+
     return (
         <ThemeProvider theme={theme}>
             <CssBaseline />
@@ -390,23 +436,23 @@ export default function Main() {
                             style: { display: 'none' },
                         }}
                     >
-                        <Tooltip title="Create"  placement="right">
+                        <Tooltip title="Create" placement="right">
                             <Tab icon={<AudiotrackIcon />} aria-label="Music" />
                         </Tooltip>
 
-                        <Tooltip title="Statistics"  placement="right">
+                        <Tooltip title="Statistics" placement="right">
                             <Tab icon={<QueryStatsIcon />} aria-label="Statistics" />
                         </Tooltip>
 
-                        <Tooltip title="Recent Listening"  placement="right">
+                        <Tooltip title="Recent Listening" placement="right">
                             <Tab icon={<HeadphonesIcon />} aria-label="Recent" />
                         </Tooltip>
 
-                        <Tooltip title="Library"  placement="right">
+                        <Tooltip title="Library" placement="right">
                             <Tab icon={<LibraryMusicIcon />} aria-label="Playlist Library" />
                         </Tooltip>
 
-                        <Tooltip title="FAQs"  placement="right">
+                        <Tooltip title="FAQs" placement="right">
                             <Tab icon={<LiveHelpIcon />} aria-label="FAQs" />
                         </Tooltip>
                     </Tabs>
@@ -421,65 +467,78 @@ export default function Main() {
                 <ContentContainer>
                     {value === 0 && !url && (
                         <>
-                        <DjQuote>
-                            <Typography variant='h6'>{djPhrase}</Typography>
-                        </DjQuote>
-                        <iframe
-                            src="https://lottie.host/embed/4505bc97-2bbe-40e1-bb3d-0d4d1ed3f453/gdQzVP9tLK.json"
-                            title="Loading animation"
-                            width="100%"
-                            height="400"
-                            style={{ border: "none", background: "transparent" }}
-                        />
+                            <DjQuote>
+                                <Typography variant='h6'>{djPhrase}</Typography>
+                            </DjQuote>
+                            <iframe
+                                src="https://lottie.host/embed/4505bc97-2bbe-40e1-bb3d-0d4d1ed3f453/gdQzVP9tLK.json"
+                                title="Loading animation"
+                                width="100%"
+                                height="400"
+                                style={{ border: "none", background: "transparent" }}
+                            />
                         </>
                     )}
-                    {value === 0 && url && <SpotifyEmbeded url={url}/>}
+                    {value === 0 && url && <SpotifyEmbeded url={url} />}
                     {value === 1 && <div>Stats Placeholder</div>}
                     {value === 2 && ( // History Tab
                         <>
                             <RecentlyListenedSection>
-                            <Typography variant="h4" gutterBottom>Your Recent Listening</Typography>
+                                <Typography variant="h4" gutterBottom>
+                                    Your Recent Listening
+                                </Typography>
                                 {recentlyListened.length > 0 ? (
                                     recentlyListened.map((song, index) => (
                                         <RecentlyListenedItem key={index}>
+                                            <MusicNoteIcon />
                                             <RecentlyListenedText>{song}</RecentlyListenedText>
                                         </RecentlyListenedItem>
                                     ))
                                 ) : (
-                                    <p>Loading...</p>
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                            height: '150px',
+                                        }}
+                                    >
+                                        <CircularProgress />
+                                    </div>
                                 )}
                             </RecentlyListenedSection>
                         </>)}
-                        {value === 3 && (
-                            <div style={{
-                                textAlign: 'center',
-                                marginTop: '10px',
-                            }}>
-                                <Typography variant="h4" gutterBottom>Your AI Playlist Library</Typography>
-                                <PlaylistGrid>
-                                    {playlists.length > 0 ? (
-                                        playlists.map((playlist, index) => (
-                                            <embed 
-                                                key={index} 
-                                                src={`https://open.spotify.com/embed/playlist/${playlist.id}`} 
-                                                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                                                loading="lazy"
-                                                height="152px"
-                                                width="100%"
-                                            />
-                                        ))
-                                    ) : (
-                                        <p>No playlists added yet. Generate one to see it here!</p>
-                                    )}
-                                </PlaylistGrid>
-                            </div>
-                        )}
-                        {value === 4 && 
-                            <FAQ>
+
+                    {value === 3 && (
+                        <div style={{
+                            textAlign: 'center',
+                            marginTop: '10px',
+                        }}>
+                            <Typography variant="h4" gutterBottom>Your AI Playlist Library</Typography>
+                            <PlaylistGrid>
+                                {playlists.length > 0 ? (
+                                    playlists.map((playlist, index) => (
+                                        <embed
+                                            key={index}
+                                            src={`https://open.spotify.com/embed/playlist/${playlist.id}`}
+                                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                                            loading="lazy"
+                                            height="152px"
+                                            width="100%"
+                                        />
+                                    ))
+                                ) : (
+                                    <p>No playlists added yet. Generate one to see it here!</p>
+                                )}
+                            </PlaylistGrid>
+                        </div>
+                    )}
+                    {value === 4 &&
+                        <FAQ>
                             <Typography variant="h4" gutterBottom>
                                 Frequently Asked Questions
                             </Typography>
-                
+
                             <StyledAccordion>
                                 <StyledAccordionSummary
                                     expandIcon={<ExpandMoreIcon />}
@@ -494,7 +553,7 @@ export default function Main() {
                                     </Typography>
                                 </StyledAccordionDetails>
                             </StyledAccordion>
-                            
+
                             <StyledAccordion>
                                 <StyledAccordionSummary
                                     expandIcon={<ExpandMoreIcon />}
@@ -524,7 +583,7 @@ export default function Main() {
                                     </Typography>
                                 </StyledAccordionDetails>
                             </StyledAccordion>
-                
+
                             <StyledAccordion>
                                 <StyledAccordionSummary
                                     expandIcon={<ExpandMoreIcon />}
@@ -539,7 +598,7 @@ export default function Main() {
                                     </Typography>
                                 </StyledAccordionDetails>
                             </StyledAccordion>
-                
+
                             <StyledAccordion>
                                 <StyledAccordionSummary
                                     expandIcon={<ExpandMoreIcon />}
@@ -555,10 +614,10 @@ export default function Main() {
                                 </StyledAccordionDetails>
                             </StyledAccordion>
                         </FAQ>
-                        }
+                    }
 
                 </ContentContainer>
-                <Tooltip title="Logout"  placement="top">
+                <Tooltip title="Logout" placement="top">
                     <Fab
                         color="#1DB954"
                         aria-label="logout"
