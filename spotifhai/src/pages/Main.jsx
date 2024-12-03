@@ -16,13 +16,10 @@ import { Spotify } from 'react-spotify-embed';
 import SpotifyEmbeded from '../components/SpotifyEmbed/SpotifyEmbeded';
 import { px } from 'framer-motion';
 import { getUserPlaylists } from '../API/API';
-<<<<<<< HEAD
 import MusicNoteIcon from '@mui/icons-material/MusicNote';
-=======
 import { getTopArtists } from '../API/API';
 import { getTopTracks } from '../API/API';
 
->>>>>>> 9ceb2138046ea4b573d6d5597d294a21d03a1032
 
 // iMessage colors
 const iMessageColors = {
@@ -401,8 +398,6 @@ export default function Main() {
             }
         };
 
-<<<<<<< HEAD
-=======
         const fetchTopTracks = async () => {
             try {
             const res= await getTopTracks();
@@ -424,7 +419,6 @@ export default function Main() {
             }
         };
     
->>>>>>> 9ceb2138046ea4b573d6d5597d294a21d03a1032
         fetchRecentlyListened();
         fetchPlaylists();
         fetchTopArtists();
@@ -539,10 +533,6 @@ export default function Main() {
                             />
                         </>
                     )}
-<<<<<<< HEAD
-                    {value === 0 && url && <SpotifyEmbeded url={url} />}
-                    {value === 1 && <div>Stats Placeholder</div>}
-=======
                     {value === 0 && url && <SpotifyEmbeded url={url}/>}
                     {value === 1 && (
                         <>
@@ -594,7 +584,6 @@ export default function Main() {
                         </>
                     
                     )}
->>>>>>> 9ceb2138046ea4b573d6d5597d294a21d03a1032
                     {value === 2 && ( // History Tab
                         <>
                             <RecentlyListenedSection>
