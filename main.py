@@ -15,6 +15,8 @@ import regex as re
 import time
 import httpx 
 
+#python -m uvicorn main:app --reload
+
 # Load environment variables from .env file
 load_dotenv()
 
@@ -509,6 +511,24 @@ async def recentlyListened(request: PlaylistRequest):
     auth_token = request.accessToken
     res = get_recently_listened()
     return SecondResponse(response = "Recently Listened Songs:     " + " ------- ".join(res))
+
+# Endpoint to get top artists, returns a list of the top artists
+@app.post("/topArtists")
+async def topArtists(request: PlaylistRequest):
+    res = get_top_artists()
+    if len(res) > 25:
+        res = res[:25]
+    # res is a list of the top artists
+    return SecondResponse(response = '' + ',,'.join(res))
+
+# Endpoint to get top tracks, returns a list of the top tracks
+@app.post("/topTracks")
+async def topTracks(request: PlaylistRequest):
+    res = get_top_tracks()
+    if len(res) > 25:
+        res = res[:25]
+    # res is a list of the top tracks
+    return SecondResponse(response = '' + ',,'.join(res))
 
 @app.get("/api/playlists")
 async def get_playlists(request: Request):

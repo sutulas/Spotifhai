@@ -16,7 +16,13 @@ import { Spotify } from 'react-spotify-embed';
 import SpotifyEmbeded from '../components/SpotifyEmbed/SpotifyEmbeded';
 import { px } from 'framer-motion';
 import { getUserPlaylists } from '../API/API';
+<<<<<<< HEAD
 import MusicNoteIcon from '@mui/icons-material/MusicNote';
+=======
+import { getTopArtists } from '../API/API';
+import { getTopTracks } from '../API/API';
+
+>>>>>>> 9ceb2138046ea4b573d6d5597d294a21d03a1032
 
 // iMessage colors
 const iMessageColors = {
@@ -290,6 +296,30 @@ const DjQuote = styled(Box)({
     color: '#ffffff',
 });
 
+//Components for Stats page
+// Styled components
+const ScrollableSection = styled(Box)({
+    borderRadius: '20px',
+    boxShadow: '10px 0px 30px rgba(255, 120, 0, 0.5)',
+    backgroundColor: 'rgba(255, 130, 10, 0.5)',
+    padding: '16px',
+    fontSize: '1rem',
+    fontWeight: 'bold',
+    color: '#ffffff',
+    overflowY: 'auto',
+    maxHeight: '400px',
+});
+
+const ContainerBox = styled(Box)({
+    display: 'flex',
+    justifyContent: 'space-between',
+    gap: '20px',
+    marginTop: '20px',
+});
+
+
+
+
 const theme = createTheme({
     components: {
         MuiTouchRipple: {
@@ -330,6 +360,9 @@ export default function Main() {
     const [value, setValue] = useState(0); // State to track selected tab
     const [playlists, setPlaylists] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [topArtists, setTopArtists] = useState([]);
+    const [topTracks, setTopTracks] = useState([]);
+    const [tracks_loading, setTracksLoading] = useState(true);
     const [error, setError] = useState(null);
     const [djPhrase, setDjPhrase] = useState('');
     const [playlistLibrary, setPlaylistLibrary] = useState(
@@ -368,8 +401,35 @@ export default function Main() {
             }
         };
 
+<<<<<<< HEAD
+=======
+        const fetchTopTracks = async () => {
+            try {
+            const res= await getTopTracks();
+            const tracks = res.response.split(',,').map(track => track.trim());
+            setTopTracks(tracks);
+            } catch (error) {
+            console.error('Error fetching top tracks:', error);
+            }
+        };
+
+        const fetchTopArtists = async () => {
+            try {
+            const res = await getTopArtists();
+            const artists = res.response.split(',,').map(artist => artist.trim());
+            console.log(artists);
+            setTopArtists(artists);
+            } catch (error) {
+            console.error('Error fetching top artists:', error);
+            }
+        };
+    
+>>>>>>> 9ceb2138046ea4b573d6d5597d294a21d03a1032
         fetchRecentlyListened();
         fetchPlaylists();
+        fetchTopArtists();
+        fetchTopTracks();
+        setTracksLoading(false);
     }, []);
 
     useEffect(() => {
@@ -479,8 +539,62 @@ export default function Main() {
                             />
                         </>
                     )}
+<<<<<<< HEAD
                     {value === 0 && url && <SpotifyEmbeded url={url} />}
                     {value === 1 && <div>Stats Placeholder</div>}
+=======
+                    {value === 0 && url && <SpotifyEmbeded url={url}/>}
+                    {value === 1 && (
+                        <>
+                        <ContainerBox>
+                            {/* Top Artists Section */}
+                            <ScrollableSection>
+                                <Typography variant="h4" gutterBottom>
+                                    Top Artists
+                                </Typography>
+                                {tracks_loading ? (
+                                    <p>Loading...</p>
+                                ) : (
+                                    <Box>
+                                        {topArtists.length > 0 ? (
+                                            topArtists.map((Artist, index) => (
+                                                <Typography key={index} variant="h6">
+                                                    {index + 1}. {Artist}
+                                                </Typography>
+                                            ))
+                                        ) : (
+                                            <p>No top artists available.</p>
+                                        )}
+                                    </Box>
+                                )}
+                            </ScrollableSection>
+
+                            {/* Top Songs Section */}
+                            <ScrollableSection>
+                                <Typography variant="h4" gutterBottom>
+                                    Top Songs
+                                </Typography>
+                                {tracks_loading ? (
+                                    <p>Loading...</p>
+                                ) : (
+                                    <Box>
+                                        {topTracks.length > 0 ? (
+                                            topTracks.map((track, index) => (
+                                                <Typography key={index} variant="h6">
+                                                    {index + 1}. {track}
+                                                </Typography>
+                                            ))
+                                        ) : (
+                                            <p>No top songs available.</p>
+                                        )}
+                                    </Box>
+                                )}
+                            </ScrollableSection>
+                        </ContainerBox>
+                        </>
+                    
+                    )}
+>>>>>>> 9ceb2138046ea4b573d6d5597d294a21d03a1032
                     {value === 2 && ( // History Tab
                         <>
                             <RecentlyListenedSection>

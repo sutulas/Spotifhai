@@ -129,3 +129,54 @@ export async function getUserPlaylists() {
         return false;
     }
 }
+
+// Mock API Calls
+// export async function getTopArtists() {
+//     const response = await fetch('/topArtists', { method: 'POST' });
+//     console.log("response");
+//     return response.json();
+// }
+  
+// export async function getTopTracks() {
+//     const response = await fetch('/topTracks', { method: 'POST' });
+//     return response.json();
+// }
+
+export async function getTopTracks() { 
+    const userId = localStorage.getItem("user_id");
+    const accessToken = localStorage.getItem("access_token");
+    try {
+        const response = await axios.post(url + 'topTracks', {
+            userId: userId,
+            userPrompt: "prompt",
+            accessToken: accessToken
+        });
+        // console.log("Logging");
+        // console.log(response.data); // Log the response from the API
+        return response.data;
+    } catch (error) {
+        localStorage.clear();
+        console.log("Returning recently listened");
+        return false;
+    }
+}
+
+
+export async function getTopArtists() { 
+    const userId = localStorage.getItem("user_id");
+    const accessToken = localStorage.getItem("access_token");
+    try {
+        const response = await axios.post(url + 'topArtists', {
+            userId: userId,
+            userPrompt: "prompt",
+            accessToken: accessToken
+        });
+        // console.log("Logging");
+        // console.log(response.data); // Log the response from the API
+        return response.data;
+    } catch (error) {
+        localStorage.clear();
+        console.log("Returning recently listened");
+        return false;
+    }
+}
