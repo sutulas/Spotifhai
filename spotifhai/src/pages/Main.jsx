@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Paper, CssBaseline, Tooltip, Accordion, AccordionSummary, AccordionDetails, Typography, Tabs, Tab, CircularProgress, ListItem, ListItemIcon, ListItemText, List, Divider, Slide } from '@mui/material';
+import { Box, Paper, CssBaseline, Tooltip, Accordion, AccordionSummary, AccordionDetails, Typography, Tabs, Tab, CircularProgress, Slide } from '@mui/material';
 import Fab from '@mui/material/Fab';
 import { styled } from '@mui/system';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
@@ -12,9 +12,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import LibraryMusicIcon from '@mui/icons-material/LibraryMusic';
 import LiveHelpIcon from '@mui/icons-material/LiveHelp';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { Spotify } from 'react-spotify-embed';
 import SpotifyEmbeded from '../components/SpotifyEmbed/SpotifyEmbeded';
-import { px } from 'framer-motion';
 import { getUserPlaylists } from '../API/API';
 import MusicNoteIcon from '@mui/icons-material/MusicNote';
 import { getTopArtists } from '../API/API';
@@ -67,11 +65,25 @@ const ChatbotContainer = styled(Paper)(({ theme }) => ({
     color: 'white',
     display: 'flex',
     flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'flex-start',
+    alignItems: 'stretch',
     borderRadius: '16px',
     boxShadow: '0px 0px 30px rgba(255, 120, 0, 0.5)',
     animation: 'slideIn 0.6s ease-out',
+    overflow: 'hidden',
+    height: '100%',
+    maxWidth: '400px',
+    '& .react-chatbot-kit-chat-container': {
+        height: '100%',
+        width: '100%',
+    },
+    '& .react-chatbot-kit-chat-inner-container': {
+        height: '100%',
+    },
+    '& .react-chatbot-kit-chat-message-container': {
+        height: 'calc(100% - 60px)',
+        overflow: 'auto',
+    },
     '@keyframes slideIn': {
         from: { opacity: 0, transform: 'translateX(-50px)' },
         to: { opacity: 1, transform: 'translateX(0)' },
@@ -99,137 +111,6 @@ const ContentContainer = styled(Paper)(({ theme }) => ({
         to: { opacity: 1, transform: 'translateX(0)' },
     },
 }));
-
-const RecentlyListenedSection = styled(Box)({
-    display: 'flex',
-    alignItems: 'center',
-    flexDirection: 'column',
-    gap: '20px',
-    padding: '30px 15px',
-    width: '100%',
-    height: 'auto',
-    maxHeight: '80vh', // Limit the height of the section
-    overflowY: 'auto', // Enable vertical scrolling
-    backgroundColor: '#f9f9f9',
-    borderRadius: '10px',
-    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
-    '&::-webkit-scrollbar': { // Custom scrollbar styling
-        width: '8px',
-    },
-    '&::-webkit-scrollbar-thumb': {
-        backgroundColor: '#c1c1c1',
-        borderRadius: '4px',
-    },
-    '&::-webkit-scrollbar-thumb:hover': {
-        backgroundColor: '#a1a1a1',
-    },
-});
-
-const RecentlyListenedItem = styled(Box)({
-    display: 'flex',
-    alignItems: 'center',
-    gap: '15px', // Increased gap for better spacing
-    padding: '15px 10px',
-    width: '100%',
-    backgroundColor: '#ffffff', // Card-like style for each item
-    borderRadius: '8px',
-    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)', // Subtle shadow for depth
-    transition: 'transform 0.3s ease, box-shadow 0.3s ease',
-    '&:hover': {
-        transform: 'scale(1.02)', // Slight scaling on hover
-        boxShadow: '0px 6px 12px rgba(0, 0, 0, 0.15)', // More pronounced shadow
-    },
-});
-
-const RecentlyListenedText = styled(Box)({
-    flex: 1,
-    color: '#333',
-    fontSize: '16px', // Standardized font size
-    fontWeight: 500, // Medium weight for emphasis
-    animation: 'fadeIn 0.6s ease-in',
-    '@keyframes fadeIn': {
-        from: { opacity: 0 },
-        to: { opacity: 1 },
-    },
-});
-
-const IconWrapper = styled(Box)({
-    width: '50px',
-    height: '50px',
-    borderRadius: '8px',
-    overflow: 'hidden', // Ensures image stays within bounds
-    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)', // Adds depth to icons
-    '& img': {
-        width: '100%',
-        height: '100%',
-        objectFit: 'cover', // Keeps images proportional
-    },
-});
-
-// Playlist Library grid styles
-const PlaylistGrid = styled(Box)({
-    display: 'flex',
-    flexWrap: 'wrap',          // Allow items to wrap to the next row
-    gap: '15px',
-    padding: '10px',
-    marginBottom: '10px',
-    overflowY: 'auto',
-    height: '100%',
-    borderRadius: '16px',
-    maxHeight: 'calc(100vh - 120px)',
-    justifyContent: 'start',
-    alignItems: 'start',
-});
-
-const FAQ = styled(Box)({
-    flex: 1,
-    color: '#333', // Dark text color for readability
-    fontWeight: 'normal', // Removed bold styling
-    animation: 'fadeIn 0.6s ease-in', // Smooth fade-in animation
-    '@keyframes fadeIn': {
-        from: { opacity: 0 },
-        to: { opacity: 1 },
-    },
-    padding: '20px', // Added padding for spacing
-    maxWidth: '800px', // Max width for the content
-    margin: '0 auto', // Center the content horizontally
-});
-
-const StyledAccordion = styled(Accordion)({
-    backgroundColor: '#f9f9f9',
-    boxShadow: 'none',
-    marginBottom: '10px', // Space between each accordion item
-    borderRadius: '8px', // Rounded corners for a softer look
-    '&:before': {
-        display: 'none', // Hide the default divider
-    },
-});
-
-// Styling for the AccordionSummary
-const StyledAccordionSummary = styled(AccordionSummary)({
-    backgroundColor: '#e0e0e0', // Light gray background for each question
-    borderRadius: '8px',
-    '& .MuiAccordionSummary-expandIcon': {
-        color: '#333', // Icon color
-    },
-    '& .MuiTypography-root': {
-        fontWeight: 'bold', // Bold styling for questions
-        fontSize: '1.1rem',
-    },
-});
-
-// Styling for the AccordionDetails
-const StyledAccordionDetails = styled(AccordionDetails)({
-    padding: '16px', // Padding for the details
-    backgroundColor: '#fff', // White background for answers
-    borderRadius: '0 0 8px 8px', // Rounded bottom corners
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)', // Light shadow for depth
-    '& p': {
-        margin: '0', // Remove default margin on paragraphs
-        fontSize: '1rem',
-        color: '#555', // Lighter text color for answers
-    },
-});
 
 const djPhrases = [
     "Time for some hot tracks!",
@@ -276,7 +157,7 @@ const djPhrases = [
     "This set’s got more flow than a fiber optic cable.",
     "This track’s smoother than a bug-free deployment.",
     "Oops, I did it again... dropped a fire track. 🔥🎧",
-    "I’m gonna swing from the chandelier... if the drop hits hard enough. 🎤💥",
+    "I’m gonna swing from the chandelier... if the drop hits hard enough. 🎤",
     "Just a small-town DJ, livin' in a lonely world. 🎧 🌍",
     "Let's groove to the algorithm!"
 ];
@@ -292,30 +173,6 @@ const DjQuote = styled(Box)({
     fontWeight: 'bold',
     color: '#ffffff',
 });
-
-//Components for Stats page
-// Styled components
-const ScrollableSection = styled(Box)({
-    borderRadius: '20px',
-    boxShadow: '10px 0px 30px rgba(255, 120, 0, 0.5)',
-    backgroundColor: 'rgba(255, 130, 10, 0.5)',
-    padding: '16px',
-    fontSize: '1rem',
-    fontWeight: 'bold',
-    color: '#ffffff',
-    overflowY: 'auto',
-    maxHeight: '400px',
-});
-
-const ContainerBox = styled(Box)({
-    display: 'flex',
-    justifyContent: 'space-between',
-    gap: '20px',
-    marginTop: '20px',
-});
-
-
-
 
 const theme = createTheme({
     components: {
@@ -351,16 +208,101 @@ const theme = createTheme({
     },
 });
 
+const faqItems = [
+    {
+        question: "What is SpotifHAI?",
+        answer: "SpotifHAI is an AI-powered chatbot that helps you discover, create, and share Spotify playlists based on your preferences and music history."
+    },
+    {
+        question: "What can DJ SpotifHAI do?",
+        answer: "DJ SpotifHAI can create custom playlists based on your mood, activities, or music preferences. You can ask for playlists for specific occasions, genres, or similar to your favorite artists. Just chat with the AI and let it know what you're looking for!"
+    },
+    {
+        question: "How do I create a playlist?",
+        answer: "Simply chat with DJ SpotifHAI and describe what kind of playlist you want. You can ask for things like 'Create a workout playlist' or 'Make me a playlist similar to [artist name]'. The AI will generate a custom playlist based on your request."
+    },
+    {
+        question: "How can I view my recent listening history?",
+        answer: "Your recent listening history can be viewed in the 'Recent Listening' tab. This shows your most recently played tracks on Spotify."
+    },
+    {
+        question: "Where can I find my AI-generated playlists?",
+        answer: "All playlists created by SpotifHAI will appear in your Spotify account and in the 'Library' tab of this app. They'll be marked with 'SpotifHAI' in the title."
+    },
+    {
+        question: "Can I customize the playlists?",
+        answer: "Yes! You can be specific in your requests to DJ SpotifHAI. Ask for playlists with certain moods, tempos, or genres. You can also edit the playlists directly in your Spotify account."
+    },
+    {
+        question: "What if I don't like a playlist?",
+        answer: "Feel free to ask DJ SpotifHAI to create a different playlist with more specific requirements. You can also delete any playlist from your Spotify account if you don't want to keep it."
+    }
+];
+
+// Add back the styled components
+const PlaylistGrid = styled(Box)({
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+    gap: '30px',
+    padding: '20px',
+    overflowY: 'auto',
+    height: '100%',
+    maxHeight: 'calc(100vh - 180px)',
+    '&::-webkit-scrollbar': {
+        width: '8px',
+    },
+    '&::-webkit-scrollbar-track': {
+        background: '#f1f1f1',
+        borderRadius: '4px',
+    },
+    '&::-webkit-scrollbar-thumb': {
+        background: '#1DB954',
+        borderRadius: '4px',
+    },
+});
+
+const StyledAccordion = styled(Accordion)({
+    backgroundColor: '#f9f9f9',
+    boxShadow: 'none',
+    marginBottom: '10px',
+    borderRadius: '8px',
+    '&:before': {
+        display: 'none',
+    },
+});
+
+const StyledAccordionSummary = styled(AccordionSummary)({
+    backgroundColor: '#e0e0e0',
+    borderRadius: '8px',
+    '& .MuiAccordionSummary-expandIcon': {
+        color: '#333',
+    },
+    '& .MuiTypography-root': {
+        fontWeight: 'bold',
+        fontSize: '1.1rem',
+    },
+});
+
+const StyledAccordionDetails = styled(AccordionDetails)({
+    padding: '16px',
+    backgroundColor: '#fff',
+    borderRadius: '0 0 8px 8px',
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+    '& p': {
+        margin: '0',
+        fontSize: '1rem',
+        color: '#555',
+    },
+});
+
 export default function Main() {
     const [url, setUrl] = useState();
     const [recentlyListened, setRecentlyListened] = useState([]);
     const [value, setValue] = useState(0); // State to track selected tab
     const [playlists, setPlaylists] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [topArtists, setTopArtists] = useState([]);
     const [topTracks, setTopTracks] = useState([]);
     const [tracks_loading, setTracksLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [djPhrase, setDjPhrase] = useState('');
     const [playlistLibrary, setPlaylistLibrary] = useState(
         JSON.parse(localStorage.getItem('playlistLibrary')) || []
@@ -388,13 +330,10 @@ export default function Main() {
                     console.log("Playlist data");
                     console.log(data);
                 } else {
-                    setError("Failed to fetch playlists");
+                    console.error("Failed to fetch playlists");
                 }
             } catch (err) {
-                setError("Error fetching playlists");
-                console.error(err);
-            } finally {
-                setLoading(false);
+                console.error("Error fetching playlists:", err);
             }
         };
 
@@ -442,12 +381,6 @@ export default function Main() {
     const handleChange = (event, newValue) => {
         setValue(newValue);
     };
-
-    const playListFilter = () => {
-        return playlists.filter(playlist => playlist.name.endsWith("SpotifHAI"));
-    }
-
-
 
     const handleUrl = async (prompt) => {
         console.log(prompt);
@@ -535,290 +468,443 @@ export default function Main() {
                     )}
                     {value === 0 && url && <SpotifyEmbeded url={url} />}
                     {value === 1 && (
-                        <>
-                            <Box
+                        <Box
+                            sx={{
+                                width: '100%',
+                                height: '100%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 3,
+                                padding: 3,
+                                overflow: 'hidden'
+                            }}
+                        >
+                            <Typography
+                                variant="h3"
                                 sx={{
-                                    display: "flex",
-                                    maxHeight: "80vh",
-                                    gap: 4,
-                                    padding: 4,
-                                    background: "linear-gradient(135deg, #f9f9f9, #e8eaf6)",
-                                    borderRadius: 4,
-                                    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.2)",
+                                    textAlign: 'center',
+                                    fontWeight: 600,
+                                    background: 'linear-gradient(45deg, #1DB954, #23fc70)',
+                                    WebkitBackgroundClip: 'text',
+                                    WebkitTextFillColor: 'transparent',
+                                    mb: 2
                                 }}
                             >
+                                Your Music Stats
+                            </Typography>
+
+                            <Box sx={{
+                                display: 'flex',
+                                gap: 4,
+                                height: 'calc(100% - 100px)', // Account for title
+                                overflow: 'hidden'
+                            }}>
                                 {/* Top Artists Section */}
-                                <Box sx={{ flex: 1 }}>
+                                <Box sx={{
+                                    flex: 1,
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: 2,
+                                    height: '100%',
+                                    backgroundColor: '#f8f9fa',
+                                    borderRadius: 3,
+                                    padding: 3,
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                                }}>
                                     <Typography
-                                        variant="h4"
-                                        gutterBottom
+                                        variant="h5"
                                         sx={{
                                             fontWeight: 600,
-                                            background: "linear-gradient(90deg, #6a11cb, #2575fc)",
-                                            WebkitBackgroundClip: "text",
-                                            WebkitTextFillColor: "transparent",
+                                            color: '#1DB954',
+                                            textAlign: 'center',
+                                            mb: 1
                                         }}
                                     >
-                                        Top 5 Artists
+                                        Top Artists
                                     </Typography>
-                                    {tracks_loading ? (
-                                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: 100 }}>
-                                            <CircularProgress />
-                                        </Box>
-                                    ) : (
-                                        <Box
-                                            sx={{
-                                                display: "flex",
-                                                flexDirection: "column",
-                                                gap: 2,
-                                            }}
-                                        >
-                                            {topArtists.length > 0 ? (
-                                                topArtists.slice(0, 5).map((artist, index) => (
-                                                    <Slide direction="up" in={!tracks_loading} mountOnEnter unmountOnExit key={index}>
-                                                        <Box
+                                    
+                                    <Box sx={{
+                                        overflow: 'auto',
+                                        flex: 1,
+                                        '&::-webkit-scrollbar': {
+                                            width: '8px',
+                                        },
+                                        '&::-webkit-scrollbar-track': {
+                                            background: '#f1f1f1',
+                                            borderRadius: '4px',
+                                        },
+                                        '&::-webkit-scrollbar-thumb': {
+                                            background: '#1DB954',
+                                            borderRadius: '4px',
+                                        },
+                                    }}>
+                                        {tracks_loading ? (
+                                            <Box sx={{ display: "flex", justifyContent: "center", p: 2 }}>
+                                                <CircularProgress sx={{ color: '#1DB954' }} />
+                                            </Box>
+                                        ) : (
+                                            topArtists.slice(0, 5).map((artist, index) => (
+                                                <Slide direction="right" in={!tracks_loading} timeout={300 * (index + 1)} key={index}>
+                                                    <Box sx={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: 2,
+                                                        p: 2,
+                                                        mb: 1,
+                                                        backgroundColor: '#fff',
+                                                        borderRadius: 2,
+                                                        boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                                                        transition: 'transform 0.2s, box-shadow 0.2s',
+                                                        '&:hover': {
+                                                            transform: 'translateX(5px)',
+                                                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                                        }
+                                                    }}>
+                                                        <Typography
+                                                            variant="h6"
                                                             sx={{
-                                                                display: "flex",
-                                                                alignItems: "center",
-                                                                justifyContent: "space-between",
-                                                                padding: 2,
-                                                                background: "linear-gradient(135deg, #ff9a9e, #fad0c4)",
-                                                                borderRadius: 2,
-                                                                boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
-                                                                transition: "transform 0.3s, box-shadow 0.3s",
-                                                                "&:hover": {
-                                                                    transform: "scale(1.05)",
-                                                                    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.2)",
-                                                                },
+                                                                fontWeight: 500,
+                                                                color: '#333',
+                                                                flex: 1
                                                             }}
                                                         >
-                                                            <Typography
-                                                                variant="h6"
-                                                                sx={{
-                                                                    fontWeight: "bold",
-                                                                }}
-                                                            >
-                                                                {`${index + 1}. ${artist}`}
-                                                            </Typography>
-                                                            <MusicNoteIcon sx={{ fontSize: 40, color: "#fff" }} />
-                                                        </Box>
-                                                    </Slide>
-                                                ))
-                                            ) : (
-                                                <Typography variant="body2" color="textSecondary">
-                                                    No top artists available.
-                                                </Typography>
-                                            )}
-                                        </Box>
-                                    )}
+                                                            {`${index + 1}. ${artist}`}
+                                                        </Typography>
+                                                        <MusicNoteIcon sx={{ color: '#1DB954' }} />
+                                                    </Box>
+                                                </Slide>
+                                            ))
+                                        )}
+                                    </Box>
                                 </Box>
-
-                                <Divider orientation="vertical" flexItem />
 
                                 {/* Top Songs Section */}
-                                <Box sx={{ flex: 1 }}>
+                                <Box sx={{
+                                    flex: 1,
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: 2,
+                                    height: '100%',
+                                    backgroundColor: '#f8f9fa',
+                                    borderRadius: 3,
+                                    padding: 3,
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                                }}>
                                     <Typography
-                                        variant="h4"
-                                        gutterBottom
+                                        variant="h5"
                                         sx={{
                                             fontWeight: 600,
-                                            background: "linear-gradient(90deg, #ff6a00, #ee0979)",
-                                            WebkitBackgroundClip: "text",
-                                            WebkitTextFillColor: "transparent",
+                                            color: '#1DB954',
+                                            textAlign: 'center',
+                                            mb: 1
                                         }}
                                     >
-                                        Top 5 Songs
+                                        Top Songs
                                     </Typography>
-                                    {tracks_loading ? (
-                                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: 100 }}>
-                                            <CircularProgress />
-                                        </Box>
-                                    ) : (
-                                        <Box
-                                            sx={{
-                                                display: "flex",
-                                                flexDirection: "column",
-                                                gap: 2,
-                                            }}
-                                        >
-                                            {topTracks.length > 0 ? (
-                                                topTracks.slice(0, 5).map((song, index) => (
-                                                    <Slide direction="up" in={!tracks_loading} mountOnEnter unmountOnExit key={index}>
-                                                        <Box
+                                    
+                                    <Box sx={{
+                                        overflow: 'auto',
+                                        flex: 1,
+                                        '&::-webkit-scrollbar': {
+                                            width: '8px',
+                                        },
+                                        '&::-webkit-scrollbar-track': {
+                                            background: '#f1f1f1',
+                                            borderRadius: '4px',
+                                        },
+                                        '&::-webkit-scrollbar-thumb': {
+                                            background: '#1DB954',
+                                            borderRadius: '4px',
+                                        },
+                                    }}>
+                                        {tracks_loading ? (
+                                            <Box sx={{ display: "flex", justifyContent: "center", p: 2 }}>
+                                                <CircularProgress sx={{ color: '#1DB954' }} />
+                                            </Box>
+                                        ) : (
+                                            topTracks.slice(0, 5).map((song, index) => (
+                                                <Slide direction="left" in={!tracks_loading} timeout={300 * (index + 1)} key={index}>
+                                                    <Box sx={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: 2,
+                                                        p: 2,
+                                                        mb: 1,
+                                                        backgroundColor: '#fff',
+                                                        borderRadius: 2,
+                                                        boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                                                        transition: 'transform 0.2s, box-shadow 0.2s',
+                                                        '&:hover': {
+                                                            transform: 'translateX(-5px)',
+                                                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                                        }
+                                                    }}>
+                                                        <Typography
+                                                            variant="h6"
                                                             sx={{
-                                                                display: "flex",
-                                                                alignItems: "center",
-                                                                justifyContent: "space-between",
-                                                                padding: 2,
-                                                                background: "linear-gradient(135deg, #fbc2eb, #a6c1ee)",
-                                                                borderRadius: 2,
-                                                                boxShadow: "0 2px 10px rgba(0, 0, 0, 0.1)",
-                                                                transition: "transform 0.3s, box-shadow 0.3s",
-                                                                "&:hover": {
-                                                                    transform: "scale(1.05)",
-                                                                    boxShadow: "0 4px 20px rgba(0, 0, 0, 0.2)",
-                                                                },
+                                                                fontWeight: 500,
+                                                                color: '#333',
+                                                                flex: 1
                                                             }}
                                                         >
-                                                            <Typography
-                                                                variant="h6"
-                                                                sx={{
-                                                                    fontWeight: "bold",
-                                                                }}
-                                                            >
-                                                                {`${index + 1}. ${song}`}
-                                                            </Typography>
-                                                            <MusicNoteIcon sx={{ fontSize: 40, color: "#fff" }} />
-                                                        </Box>
-                                                    </Slide>
-                                                ))
-                                            ) : (
-                                                <Typography variant="body2" color="textSecondary">
-                                                    No top songs available.
-                                                </Typography>
-                                            )}
-                                        </Box>
-                                    )}
+                                                            {`${index + 1}. ${song}`}
+                                                        </Typography>
+                                                        <MusicNoteIcon sx={{ color: '#1DB954' }} />
+                                                    </Box>
+                                                </Slide>
+                                            ))
+                                        )}
+                                    </Box>
                                 </Box>
                             </Box>
-
-                        </>
-
+                        </Box>
                     )}
-                    {value === 2 && ( // History Tab
-                        <>
-                            <RecentlyListenedSection>
-                                <Typography variant="h4" gutterBottom>
-                                    Your Recent Listening
-                                </Typography>
+                    {value === 2 && (
+                        <Box
+                            sx={{
+                                width: '100%',
+                                height: '100%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 3,
+                                padding: 3,
+                                overflow: 'hidden'
+                            }}
+                        >
+                            <Typography
+                                variant="h3"
+                                sx={{
+                                    textAlign: 'center',
+                                    fontWeight: 600,
+                                    background: 'linear-gradient(45deg, #1DB954, #23fc70)',
+                                    WebkitBackgroundClip: 'text',
+                                    WebkitTextFillColor: 'transparent',
+                                    mb: 2
+                                }}
+                            >
+                                Recent Listening History
+                            </Typography>
+
+                            <Box sx={{
+                                flex: 1,
+                                overflow: 'hidden',
+                                backgroundColor: '#f8f9fa',
+                                borderRadius: 3,
+                                padding: 3,
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                            }}>
                                 {recentlyListened.length > 0 ? (
-                                    recentlyListened.map((song, index) => (
-                                        <RecentlyListenedItem key={index}>
-                                            <MusicNoteIcon />
-                                            <RecentlyListenedText>{song}</RecentlyListenedText>
-                                        </RecentlyListenedItem>
-                                    ))
+                                    <Box sx={{
+                                        height: '100%',
+                                        overflow: 'auto',
+                                        '&::-webkit-scrollbar': {
+                                            width: '8px',
+                                        },
+                                        '&::-webkit-scrollbar-track': {
+                                            background: '#f1f1f1',
+                                            borderRadius: '4px',
+                                        },
+                                        '&::-webkit-scrollbar-thumb': {
+                                            background: '#1DB954',
+                                            borderRadius: '4px',
+                                        },
+                                    }}>
+                                        {recentlyListened.map((song, index) => (
+                                            <Slide direction="right" in={true} timeout={200 * (index + 1)} key={index}>
+                                                <Box sx={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 2,
+                                                    p: 2,
+                                                    mb: 2,
+                                                    backgroundColor: '#fff',
+                                                    borderRadius: 2,
+                                                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                                                    transition: 'transform 0.2s, box-shadow 0.2s',
+                                                    '&:hover': {
+                                                        transform: 'translateX(5px)',
+                                                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                                    }
+                                                }}>
+                                                    <MusicNoteIcon sx={{ color: '#1DB954' }} />
+                                                    <Typography
+                                                        variant="h6"
+                                                        sx={{
+                                                            fontWeight: 500,
+                                                            color: '#333',
+                                                            flex: 1,
+                                                            fontSize: '1rem'
+                                                        }}
+                                                    >
+                                                        {song}
+                                                    </Typography>
+                                                </Box>
+                                            </Slide>
+                                        ))}
+                                    </Box>
                                 ) : (
-                                    <div
-                                        style={{
-                                            display: 'flex',
-                                            justifyContent: 'center',
-                                            alignItems: 'center',
-                                            height: '150px',
-                                        }}
-                                    >
-                                        <CircularProgress />
-                                    </div>
+                                    <Box sx={{
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        height: '100%'
+                                    }}>
+                                        <CircularProgress sx={{ color: '#1DB954' }} />
+                                    </Box>
                                 )}
-                            </RecentlyListenedSection>
-                        </>)}
-
-                    {value === 3 && (
-                        <div style={{
-                            textAlign: 'center',
-                            marginTop: '10px',
-                        }}>
-                            <Typography variant="h4" gutterBottom>Your AI Playlist Library</Typography>
-                            <PlaylistGrid>
-                                {playlists.length > 0 ? (
-                                    playlists.map((playlist, index) => (
-                                        <embed
-                                            key={index}
-                                            src={`https://open.spotify.com/embed/playlist/${playlist.id}`}
-                                            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                                            loading="lazy"
-                                            height="152px"
-                                            width="100%"
-                                        />
-                                    ))
-                                ) : (
-                                    <p>No playlists added yet. Generate one to see it here!</p>
-                                )}
-                            </PlaylistGrid>
-                        </div>
+                            </Box>
+                        </Box>
                     )}
-                    {value === 4 &&
-                        <FAQ>
-                            <Typography variant="h4" gutterBottom>
+                    {value === 3 && (
+                        <Box
+                            sx={{
+                                width: '100%',
+                                height: '100%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 3,
+                                padding: 3,
+                                overflow: 'hidden'
+                            }}
+                        >
+                            <Typography
+                                variant="h3"
+                                sx={{
+                                    textAlign: 'center',
+                                    fontWeight: 600,
+                                    background: 'linear-gradient(45deg, #1DB954, #23fc70)',
+                                    WebkitBackgroundClip: 'text',
+                                    WebkitTextFillColor: 'transparent',
+                                    mb: 2
+                                }}
+                            >
+                                Your AI Playlist Library
+                            </Typography>
+
+                            <Box sx={{
+                                flex: 1,
+                                overflow: 'hidden',
+                                backgroundColor: '#f8f9fa',
+                                borderRadius: 3,
+                                padding: 3,
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                            }}>
+                                {playlists.length > 0 ? (
+                                    <PlaylistGrid>
+                                        {playlists.map((playlist, index) => (
+                                            <Slide direction="up" in={true} timeout={200 * (index + 1)} key={index}>
+                                                <Box sx={{
+                                                    backgroundColor: '#fff',
+                                                    borderRadius: 2,
+                                                    overflow: 'hidden',
+                                                    boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+                                                    transition: 'transform 0.2s, box-shadow 0.2s',
+                                                    height: '152px',
+                                                    '&:hover': {
+                                                        transform: 'translateY(-5px)',
+                                                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                                    }
+                                                }}>
+                                                    <iframe
+                                                        src={`https://open.spotify.com/embed/playlist/${playlist.id}?hide_playlist=1`}
+                                                        width="100%"
+                                                        height="152px"
+                                                        frameBorder="0"
+                                                        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                                                        loading="lazy"
+                                                        style={{
+                                                            borderRadius: '8px',
+                                                        }}
+                                                    />
+                                                </Box>
+                                            </Slide>
+                                        ))}
+                                    </PlaylistGrid>
+                                ) : (
+                                    <Box sx={{
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        height: '100%',
+                                        flexDirection: 'column',
+                                        gap: 2
+                                    }}>
+                                        <Typography variant="h6" color="text.secondary">
+                                            No playlists added yet
+                                        </Typography>
+                                        <Typography color="text.secondary">
+                                            Generate one in the chat to see it here!
+                                        </Typography>
+                                    </Box>
+                                )}
+                            </Box>
+                        </Box>
+                    )}
+                    {value === 4 && (
+                        <Box
+                            sx={{
+                                width: '100%',
+                                height: '100%',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                gap: 3,
+                                padding: 3,
+                                overflow: 'hidden'
+                            }}
+                        >
+                            <Typography
+                                variant="h3"
+                                sx={{
+                                    textAlign: 'center',
+                                    fontWeight: 600,
+                                    background: 'linear-gradient(45deg, #1DB954, #23fc70)',
+                                    WebkitBackgroundClip: 'text',
+                                    WebkitTextFillColor: 'transparent',
+                                    mb: 2
+                                }}
+                            >
                                 Frequently Asked Questions
                             </Typography>
 
-                            <StyledAccordion>
-                                <StyledAccordionSummary
-                                    expandIcon={<ExpandMoreIcon />}
-                                    aria-controls="panel1a-content"
-                                    id="panel1a-header"
-                                >
-                                    <Typography>What is SpotifHAI?</Typography>
-                                </StyledAccordionSummary>
-                                <StyledAccordionDetails>
-                                    <Typography>
-                                        SpotifHAI is an AI-powered chatbot that helps you discover, create, and share Spotify playlists based on your preferences and music history.
-                                    </Typography>
-                                </StyledAccordionDetails>
-                            </StyledAccordion>
-
-                            <StyledAccordion>
-                                <StyledAccordionSummary
-                                    expandIcon={<ExpandMoreIcon />}
-                                    aria-controls="panel2a-content"
-                                    id="panel2a-header"
-                                >
-                                    <Typography>What can DJ SpotifHAI do?</Typography>
-                                </StyledAccordionSummary>
-                                <StyledAccordionDetails>
-                                    <Typography>
-                                        DJ SpotifHAI can do anything from spin custom playlists to help you discover new tunes, but if you're still curious just ask the chat!
-                                    </Typography>
-                                </StyledAccordionDetails>
-                            </StyledAccordion>
-
-                            <StyledAccordion>
-                                <StyledAccordionSummary
-                                    expandIcon={<ExpandMoreIcon />}
-                                    aria-controls="panel2a-content"
-                                    id="panel2a-header"
-                                >
-                                    <Typography>How do I create a playlist?</Typography>
-                                </StyledAccordionSummary>
-                                <StyledAccordionDetails>
-                                    <Typography>
-                                        You can generate a playlist by interacting with the chatbot. Simply send a prompt or request, and the AI will create a playlist for you based on your request.
-                                    </Typography>
-                                </StyledAccordionDetails>
-                            </StyledAccordion>
-
-                            <StyledAccordion>
-                                <StyledAccordionSummary
-                                    expandIcon={<ExpandMoreIcon />}
-                                    aria-controls="panel3a-content"
-                                    id="panel3a-header"
-                                >
-                                    <Typography>How can I view my recent listening history?</Typography>
-                                </StyledAccordionSummary>
-                                <StyledAccordionDetails>
-                                    <Typography>
-                                        Your recent listening history can be viewed in the "Recent Listening" tab. The history updates in real-time as you listen to more music.
-                                    </Typography>
-                                </StyledAccordionDetails>
-                            </StyledAccordion>
-
-                            <StyledAccordion>
-                                <StyledAccordionSummary
-                                    expandIcon={<ExpandMoreIcon />}
-                                    aria-controls="panel2a-content"
-                                    id="panel2a-header"
-                                >
-                                    <Typography>What playlists are available in the "Library" tab?</Typography>
-                                </StyledAccordionSummary>
-                                <StyledAccordionDetails>
-                                    <Typography>
-                                        Unfortunately, as of now the "Library" tab is only able to show any public playlists you have on your spotify account.
-                                    </Typography>
-                                </StyledAccordionDetails>
-                            </StyledAccordion>
-                        </FAQ>
-                    }
+                            <Box sx={{
+                                flex: 1,
+                                overflow: 'hidden',
+                                backgroundColor: '#f8f9fa',
+                                borderRadius: 3,
+                                padding: 3,
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                            }}>
+                                <Box sx={{
+                                    height: '100%',
+                                    overflow: 'auto',
+                                    '&::-webkit-scrollbar': {
+                                        width: '8px',
+                                    },
+                                    '&::-webkit-scrollbar-track': {
+                                        background: '#f1f1f1',
+                                        borderRadius: '4px',
+                                    },
+                                    '&::-webkit-scrollbar-thumb': {
+                                        background: '#1DB954',
+                                        borderRadius: '4px',
+                                    },
+                                }}>
+                                    {faqItems.map((faq, index) => (
+                                        <Slide direction="right" in={true} timeout={200 * (index + 1)} key={index}>
+                                            <StyledAccordion>
+                                                <StyledAccordionSummary expandIcon={<ExpandMoreIcon />}>
+                                                    <Typography>{faq.question}</Typography>
+                                                </StyledAccordionSummary>
+                                                <StyledAccordionDetails>
+                                                    <Typography>{faq.answer}</Typography>
+                                                </StyledAccordionDetails>
+                                            </StyledAccordion>
+                                        </Slide>
+                                    ))}
+                                </Box>
+                            </Box>
+                        </Box>
+                    )}
 
                 </ContentContainer>
                 <Tooltip title="Logout" placement="top">

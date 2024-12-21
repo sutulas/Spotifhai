@@ -10,10 +10,16 @@ const ChatbotWrapper = ({chatBotResponseToMessage}) => {
     };
 
     return (
-        <div className="App">
-            <Chatbot addAIMessage={chatBotResponseToMessage} onUserMessage={onUserMessage}/>
+        <div style={{
+            width: '100%',
+            height: '100%',
+            display: 'flex'
+        }}>
+            <Chatbot 
+                addAIMessage={chatBotResponseToMessage} 
+                onUserMessage={onUserMessage}
+            />
         </div>
-
     );
 };
 

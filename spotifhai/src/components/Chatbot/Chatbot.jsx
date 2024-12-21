@@ -85,19 +85,21 @@ const Chatbot = ({ addAIMessage, onUserMessage }) => {
     <div
       className="chatbot"
       style={{
-        width: '400px',
+        width: '100%',
         height: '100%',
         border: 'none',
         overflow: 'hidden',
         backgroundColor: '#ffffff',
         borderRadius: '16px',
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
       <div
         ref={chatWindowRef}
         className="chat-window"
         style={{
-          height: '550px',
+          flex: 1,
           overflowY: 'auto',
           padding: '10px 20px',
           display: 'flex',
@@ -165,7 +167,15 @@ const Chatbot = ({ addAIMessage, onUserMessage }) => {
         )}
       </div>
       
-      <div className="input-container" style={{ display: 'flex', padding: '10px' }}>
+      <div className="input-container" style={{ 
+        display: 'flex', 
+        padding: '10px',
+        borderTop: '1px solid #e5e5ea',
+        backgroundColor: '#ffffff',
+        gap: '10px',
+        width: '100%',
+        boxSizing: 'border-box',
+      }}>
         {/* Question Mark Button */}
         <IconButton
           onClick={handleClick}
@@ -173,10 +183,10 @@ const Chatbot = ({ addAIMessage, onUserMessage }) => {
             backgroundColor: '#1DB954',
             borderRadius: '50%',
             color: 'white',
-            marginRight: '10px',
-            padding: '12px',
+            padding: '8px',
             height: '35px',
             width: '35px',
+            flexShrink: 0,
             boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
           }}
         >
@@ -194,15 +204,16 @@ const Chatbot = ({ addAIMessage, onUserMessage }) => {
             padding: '10px',
             border: '1px solid #e5e5ea',
             borderRadius: '20px',
-            marginRight: '10px',
+            minWidth: 0,
           }}
         />
+
         <button
           onClick={handleSendMessage}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           style={{
-            padding: '10px 15px',
+            padding: '0 20px',
             border: 'none',
             borderRadius: '20px',
             background: 'linear-gradient(135deg, #1DB954, #23fc70)',
@@ -211,6 +222,13 @@ const Chatbot = ({ addAIMessage, onUserMessage }) => {
             position: 'relative',
             overflow: 'hidden',
             transition: 'background-color 0.3s',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '36px',
+            flexShrink: 0,
+            whiteSpace: 'nowrap',
+            minWidth: '70px',
           }}
         >
           Send

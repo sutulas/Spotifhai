@@ -9,21 +9,20 @@ function SpotifyEmbeded({ url, playlist = false }) {
         <Box
             sx={{
                 borderRadius: '12px',
-                overflow: 'hidden', // Ensures border radius applies to iframe
-                maxHeight: '100%',
-                width: '100%',
-                width: '900px', // Adjust to fit your layout
-                maxWidth : '50vw',
+                overflow: 'hidden',
+                height: '80vh',
+                width: '900px',
+                maxWidth: '50vw',
                 margin: 'auto',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent:'center'
+                justifyContent: 'center'
             }}
         >
             <iframe
                 src={url}
                 width="100%"
-                height="400"
+                height="100%"
                 frameBorder="0"
                 allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                 loading="lazy"
